@@ -6,7 +6,7 @@ const TELEGRAM_API_URL = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
 // Function to handle the /start command
 const sendWelcomeMessage = async (chatId) => {
-    const welcomeMessage = "Welcome to CrownCoin Bot! 👑\n\nClick the button below to visit our website and learn more about CrownCoin.";
+    const welcomeMessage = "Welcome to CrownCoin Bot! 👑\n\nClick the button below to open the CrownCoin app.";
 
     // Button setup
     const options = {
@@ -14,8 +14,8 @@ const sendWelcomeMessage = async (chatId) => {
             inline_keyboard: [
                 [
                     {
-                        text: "Visit CrownCoin Website 🌐",
-                        url: "https://crowncoin-jduq6hatg-brahimkedjar1s-projects.vercel.app/"
+                        text: "Open CrownCoin App 🏰",
+                        url: "https://crowncoin-1se0yprw1-brahimkedjar1s-projects.vercel.app/"
                     }
                 ]
             ]
