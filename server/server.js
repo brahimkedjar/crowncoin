@@ -15,12 +15,25 @@ app.post('/webhook', async (req, res) => {
 
     if (message && message.text === '/start') {
         const chatId = message.chat.id;
-        const responseText = 'Welcome to CrownCoin Bot!';
+        const responseText = 'Welcome to CrownCoin Bot! Click the button below to visit our app.';
 
-        // Send a message back to the user
+        // Define inline keyboard button
+        const replyMarkup = {
+            inline_keyboard: [
+                [
+                    {
+                        text: "Visit CrownCoin App",
+                        url: "https://crowncoin-jduq6hatg-brahimkedjar1s-projects.vercel.app/"
+                    }
+                ]
+            ]
+        };
+
+        // Send a message back to the user with the button
         await axios.post(`${TELEGRAM_API_URL}/sendMessage`, {
             chat_id: chatId,
-            text: responseText
+            text: responseText,
+            reply_markup: replyMarkup
         });
     }
 
