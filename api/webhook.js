@@ -25,17 +25,18 @@ app.post('/webhook', async (req, res) => {
         users[chatId] = { username: username };
 
         const responseText = `Welcome ${username}! Click the button below to open the CrownCoin app.`;
+const initData = JSON.stringify({ user: users[chatId] }); // Prepare the user data
 
-        const replyMarkup = {
-            inline_keyboard: [
-                [
-                    {
-                        text: "Open CrownCoin App",
-                        web_app: { url: "https://crowncoin.vercel.app/" } // Just open the app
-                    }
-                ]
-            ]
-        };
+const replyMarkup = {
+    inline_keyboard: [
+        [
+            {
+                text: "Open CrownCoin App",
+                web_app: { url: `https://crowncoin.vercel.app/?initData=${encodeURIComponent(initData)}` } // Pass initData in the URL
+            }
+        ]
+    ]
+};
 
         try {
             await axios.post(`${TELEGRAM_API_URL}/sendMessage`, {
