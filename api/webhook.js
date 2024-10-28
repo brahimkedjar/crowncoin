@@ -22,7 +22,7 @@ app.post('/webhook', async (req, res) => {
                 [
                     {
                         text: "Open CrownCoin App",
-                        web_app: { url: "https://crowncoin-1se0yprw1-brahimkedjar1s-projects.vercel.app" }
+                        web_app: { url: "https://crowncoin.vercel.app/" }
                     }
                 ]
             ]
