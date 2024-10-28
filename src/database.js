@@ -1,56 +1,57 @@
-const axios = require('axios');
+// src/database.js
+import { db } from "./firebase";
+import { collection, addDoc, doc, getDoc, updateDoc, query, where, getDocs } from "firebase/firestore";
 
-const API_URL = 'http://regestrationrenion.atwebpages.com/api_telegram.php'; // Update with your actual API URL
+const usersCollection = collection(db, "users");
 
-const createUser = async (username) => {
+// Create a user
+export const createUser = async (username) => {
     try {
-        const response = await axios.post(API_URL, {
-            action: 'create_user',
-            username: username
-        });
-        return response.data;
+        const newUser = await addDoc(usersCollection, { username, referralCount: 0 });
+        return { id: newUser.id, ...newUser.data() };
     } catch (error) {
         console.error("Error creating user:", error);
         throw error;
     }
 };
 
-const updateReferralCount = async (userId) => {
+// Get a user by ID
+export const getUser = async (userId) => {
     try {
-        const response = await axios.post(API_URL, {
-            action: 'update_referral_count',
-            user_id: userId
-        });
-        return response.data;
-    } catch (error) {
-        console.error("Error updating referral count:", error);
-        throw error;
-    }
-};
-
-const getUser = async (userId) => {
-    try {
-        const response = await axios.get(`${API_URL}?action=get_user&id=${userId}`);
-        return response.data;
+        const userRef = doc(db, "users", userId);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+            return userSnap.data();
+        } else {
+            throw new Error("User not found.");
+        }
     } catch (error) {
         console.error("Error fetching user:", error);
         throw error;
     }
 };
 
-const getReferrals = async (userId) => {
+// Update referral count
+export const updateReferralCount = async (userId) => {
     try {
-        const response = await axios.get(`${API_URL}?action=get_referrals&user_id=${userId}`);
-        return response.data;
+        const userRef = doc(db, "users", userId);
+        await updateDoc(userRef, { referralCount: increment(1) });
+        return { message: "Referral count updated successfully." };
     } catch (error) {
-        console.error("Error fetching referrals:", error);
+        console.error("Error updating referral count:", error);
         throw error;
     }
 };
 
-module.exports = {
-    createUser,
-    updateReferralCount,
-    getUser,
-    getReferrals
+// Get referrals for a user
+export const getReferrals = async (userId) => {
+    try {
+        const referralsQuery = query(collection(db, "referrals"), where("referrerId", "==", userId));
+        const querySnapshot = await getDocs(referralsQuery);
+        const referrals = querySnapshot.docs.map(doc => doc.data());
+        return referrals;
+    } catch (error) {
+        console.error("Error fetching referrals:", error);
+        throw error;
+    }
 };

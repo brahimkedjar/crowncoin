@@ -2,7 +2,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
-const { createUser, updateReferralCount } = require('../src/database'); // Import functions
+const { db } = require('../src/firebase'); // Import Firebase Firestore
+const { addDoc, collection, doc, increment, updateDoc } = require('firebase/firestore');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -11,12 +12,34 @@ const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
 app.use(bodyParser.json());
 
-// Initialize the database with a test user or perform other startup checks
+// Create a new user in Firestore
+async function createUser(username) {
+    try {
+        const userRef = await addDoc(collection(db, 'users'), { username, referralCount: 0 });
+        return { userId: userRef.id, username };
+    } catch (error) {
+        console.error("Error creating user:", error);
+        throw error;
+    }
+}
+
+// Update the referral count
+async function updateReferralCount(userId) {
+    try {
+        const userRef = doc(db, 'users', userId);
+        await updateDoc(userRef, { referralCount: increment(1) });
+        console.log("Referral count incremented for user:", userId);
+    } catch (error) {
+        console.error("Error updating referral count:", error);
+        throw error;
+    }
+}
+
+// Initialize the database (for testing only)
 async function initializeDatabase() {
     try {
-        // Example: Create a test user or perform a simple check
-        const response = await createUser("TestUser"); 
-        console.log("Database initialized with test user:", response);
+        const testUser = await createUser("TestUser");
+        console.log("Database initialized with test user:", testUser);
     } catch (error) {
         console.error("Database initialization failed:", error);
     }
@@ -31,7 +54,6 @@ app.post('/webhook', async (req, res) => {
         const username = message.from.username || "User";
 
         try {
-            // Add the user to the database
             const userResponse = await createUser(username);
             const userId = userResponse.userId;
 
@@ -60,10 +82,10 @@ app.post('/webhook', async (req, res) => {
         }
     }
 
-    res.sendStatus(200); // Respond to Telegram
+    res.sendStatus(200);
 });
 
-// Endpoint to handle referral tracking
+// Referral tracking route
 app.get('/referral', async (req, res) => {
     const referralCode = req.query.code;
 
@@ -71,7 +93,7 @@ app.get('/referral', async (req, res) => {
         const [username, userId] = referralCode.split('-');
 
         try {
-            await updateReferralCount(userId); // Increment referral count
+            await updateReferralCount(userId);
             res.send({ message: "Referral tracked successfully!" });
         } catch (error) {
             res.status(500).send({ message: "Server error." });
@@ -84,5 +106,5 @@ app.get('/referral', async (req, res) => {
 // Start the server and initialize the database
 app.listen(port, async () => {
     console.log(`Server is running on port ${port}`);
-    await initializeDatabase(); // Initialize the database when server starts
+    await initializeDatabase();
 });

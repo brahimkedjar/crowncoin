@@ -1,12 +1,34 @@
 // src/pages/Dashboard.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import ReferralSystem from '../components/ReferralSystem';
-import './Dashboard.css'; // Make sure to create this CSS file
+import { db } from '../firebase'; // Import Firebase Firestore
+import { doc, getDoc } from 'firebase/firestore';
+import './Dashboard.css';
 
 function Dashboard() {
     const location = useLocation();
-    const userData = location.state?.userData; // Access userData from state
+    const userId = location.state?.userData?.id; // Assuming you pass userId here
+    const [userData, setUserData] = useState(null);
+
+    useEffect(() => {
+        // Fetch user data from Firebase Firestore
+        const fetchUserData = async () => {
+            if (userId) {
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', userId));
+                    if (userDoc.exists()) {
+                        setUserData(userDoc.data());
+                    } else {
+                        console.log("No such user!");
+                    }
+                } catch (error) {
+                    console.error("Error fetching user data:", error);
+                }
+            }
+        };
+        fetchUserData();
+    }, [userId]);
 
     return (
         <div className="dashboard">
@@ -14,13 +36,10 @@ function Dashboard() {
             {userData ? (
                 <div className="dashboard-content">
                     <p>Welcome, <strong>{userData.first_name}</strong></p>
-                    {/* Any other user-specific information can go here */}
-
                     <div className="airdrop-info">
                         <h3>Airdrop and TGE Information</h3>
                         <p>The airdrop and TGE will start when the app reaches 1 million users. Invite your friends to help us reach this milestone!</p>
                     </div>
-
                     <div className="tasks-section">
                         <h3>Complete These Tasks to Earn Rewards:</h3>
                         <ul>
