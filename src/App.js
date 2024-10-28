@@ -1,6 +1,6 @@
 // src/App.js
 import React, { useEffect, useState } from 'react';
-import { useNavigate, Routes, Route, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import ReferralSystem from './components/ReferralSystem';
 import { db } from './firebase'; // Import Firebase Firestore
 import { doc, getDoc } from 'firebase/firestore';
@@ -9,30 +9,35 @@ import './App.css'; // Ensure your styles are modern and appealing
 const App = () => {
     const [userData, setUserData] = useState(null);
     const [isLoading, setLoading] = useState(true);
+    const [error, setError] = useState(''); // State to store any error messages
     const navigate = useNavigate();
-    const location = useLocation();
 
     useEffect(() => {
-        if (window.Telegram && window.Telegram.WebApp) {
-            const urlParams = new URLSearchParams(window.location.search);
-            const initData = urlParams.get('initData');
+        try {
+            if (window.Telegram && window.Telegram.WebApp) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const initData = urlParams.get('initData');
 
-            if (initData) {
-                const parsedData = JSON.parse(decodeURIComponent(initData));
-                const user = parsedData.user;
+                if (initData) {
+                    const parsedData = JSON.parse(decodeURIComponent(initData));
+                    const user = parsedData.user;
 
-                setUserData(user);
-                console.log('User data:', user);
-                setTimeout(() => {
+                    setUserData(user);
+                    // Simulating a delay for loading effect
+                    setTimeout(() => {
+                        setLoading(false);
+                        navigate('/dashboard', { state: { userData: user } });
+                    }, 2000); // 2 seconds delay to simulate loading
+                } else {
+                    setError("No initData found in the URL.");
                     setLoading(false);
-                    navigate('/dashboard', { state: { userData: user } });
-                }, 2000); // 2 seconds delay to simulate loading
+                }
             } else {
-                console.log("No initData found in the URL.");
+                setError("Telegram Web App not initialized.");
                 setLoading(false);
             }
-        } else {
-            console.error("Telegram Web App not initialized.");
+        } catch (error) {
+            setError("An error occurred while initializing the Telegram Web App.");
             setLoading(false);
         }
     }, [navigate]);
@@ -46,10 +51,10 @@ const App = () => {
                     if (userDoc.exists()) {
                         setUserData(prevUserData => ({ ...prevUserData, ...userDoc.data() }));
                     } else {
-                        console.log("No such user!");
+                        setError("No user found in the database.");
                     }
                 } catch (error) {
-                    console.error("Error fetching user data:", error);
+                    setError("Error fetching user data: " + error.message);
                 }
             }
         };
@@ -65,10 +70,14 @@ const App = () => {
                     <p>Loading your data...</p>
                 </div>
             ) : (
-                userData ? (
-                    <div className="dashboard">
-                        <h2 className="dashboard-title">Dashboard</h2>
-                        {userData ? (
+                error ? (
+                    <div className="error-message">
+                        <p>{error}</p>
+                    </div>
+                ) : (
+                    userData ? (
+                        <div className="dashboard">
+                            <h2 className="dashboard-title">Dashboard</h2>
                             <div className="dashboard-content">
                                 <p>Welcome, <strong>{userData.first_name}</strong></p>
                                 <div className="airdrop-info">
@@ -96,13 +105,11 @@ const App = () => {
                                     </ul>
                                 </div>
                             </div>
-                        ) : (
-                            <p>No user data found. Please return to the main app.</p>
-                        )}
-                        <ReferralSystem userData={userData} />
-                    </div>
-                ) : (
-                    <p className="error-message">Please join the bot to see your data.</p>
+                            <ReferralSystem userData={userData} />
+                        </div>
+                    ) : (
+                        <p className="error-message">Please join the bot to see your data.</p>
+                    )
                 )
             )}
         </div>
