@@ -1,44 +1,56 @@
-// database.js
-const mysql = require('mysql2/promise'); // Use promise-based MySQL library
+const axios = require('axios');
 
-// Create a connection pool
-const pool = mysql.createPool({
-    host: 'fdb1034.awardspace.net', // Your database host
-    user: '4481491_gestionrenion', // Your database username
-    password: 'crb12345', // Your database password
-    database: '4481491_gestionrenion' // Your database name
-});
+const API_URL = 'http://regestrationrenion.atwebpages.com/api_telegram.php'; // Update with your actual API URL
 
-// Create tables if they do not exist
-const createTables = async () => {
-    const connection = await pool.getConnection();
+const createUser = async (username) => {
     try {
-        await connection.query(`
-            CREATE TABLE IF NOT EXISTS users_bot (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                username VARCHAR(255) NOT NULL UNIQUE,
-                referral_count INT DEFAULT 0
-            );
-        `);
-
-        await connection.query(`
-            CREATE TABLE IF NOT EXISTS referrals (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                referrer_id INT,
-                referee_id INT,
-                FOREIGN KEY (referrer_id) REFERENCES users(id),
-                FOREIGN KEY (referee_id) REFERENCES users(id),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        `);
+        const response = await axios.post(API_URL, {
+            action: 'create_user',
+            username: username
+        });
+        return response.data;
     } catch (error) {
-        console.error("Error creating tables:", error);
-    } finally {
-        connection.release();
+        console.error("Error creating user:", error);
+        throw error;
     }
 };
 
-// Initialize the database and create tables
-createTables();
+const updateReferralCount = async (userId) => {
+    try {
+        const response = await axios.post(API_URL, {
+            action: 'update_referral_count',
+            user_id: userId
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error updating referral count:", error);
+        throw error;
+    }
+};
 
-module.exports = pool; // Export the pool for use in other modules
+const getUser = async (userId) => {
+    try {
+        const response = await axios.get(`${API_URL}?action=get_user&id=${userId}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        throw error;
+    }
+};
+
+const getReferrals = async (userId) => {
+    try {
+        const response = await axios.get(`${API_URL}?action=get_referrals&user_id=${userId}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching referrals:", error);
+        throw error;
+    }
+};
+
+module.exports = {
+    createUser,
+    updateReferralCount,
+    getUser,
+    getReferrals
+};
