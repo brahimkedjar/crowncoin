@@ -13,37 +13,40 @@ const App = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        try {
-            if (window.Telegram && window.Telegram.WebApp) {
-                const urlParams = new URLSearchParams(window.location.search);
-                const initData = urlParams.get('initData');
+        const initApp = async () => {
+            try {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const initData = urlParams.get('initData');
 
-                if (initData) {
-                    const parsedData = JSON.parse(decodeURIComponent(initData));
-                    const user = parsedData.user;
+                    if (initData) {
+                        const parsedData = JSON.parse(decodeURIComponent(initData));
+                        const user = parsedData.user;
 
-                    setUserData(user);
-                    // Simulating a delay for loading effect
-                    setTimeout(() => {
+                        setUserData(user);
+                        // Simulating a delay for loading effect
+                        setTimeout(() => {
+                            setLoading(false);
+                            navigate('/dashboard', { state: { userData: user } });
+                        }, 2000); // 2 seconds delay to simulate loading
+                    } else {
+                        setError("No initData found in the URL.");
                         setLoading(false);
-                        navigate('/dashboard', { state: { userData: user } });
-                    }, 2000); // 2 seconds delay to simulate loading
+                    }
                 } else {
-                    setError("No initData found in the URL.");
+                    setError("Telegram Web App not initialized.");
                     setLoading(false);
                 }
-            } else {
-                setError("Telegram Web App not initialized.");
+            } catch (error) {
+                setError("An error occurred while initializing the Telegram Web App.");
                 setLoading(false);
             }
-        } catch (error) {
-            setError("An error occurred while initializing the Telegram Web App.");
-            setLoading(false);
-        }
+        };
+
+        initApp();
     }, [navigate]);
 
     useEffect(() => {
-        // Fetch user data from Firebase Firestore
         const fetchUserData = async () => {
             if (userData && userData.id) {
                 try {
@@ -58,8 +61,10 @@ const App = () => {
                 }
             }
         };
+
+        // Only call fetchUserData if userData has changed
         fetchUserData();
-    }, [userData]);
+    }, [userData]); // Include userData as a dependency
 
     return (
         <div className="app-container">

@@ -3,7 +3,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 const { db } = require('../src/firebase'); // Import Firebase Firestore
-const { addDoc, collection, doc, increment, updateDoc } = require('firebase/firestore');
+const { addDoc, collection, doc, getDoc, increment, updateDoc } = require('firebase/firestore');
+const { v4: uuidv4 } = require('uuid'); // UUID library for unique user IDs
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -12,10 +13,17 @@ const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
 app.use(bodyParser.json());
 
+// Check if a user already exists by username
+async function checkUserExists(username) {
+    const usersRef = collection(db, 'users');
+    const userSnapshot = await getDoc(doc(usersRef, username));
+    return userSnapshot.exists() ? userSnapshot.data() : null;
+}
+
 // Create a new user in Firestore
-async function createUser(username) {
+async function createUser(userId, username) {
     try {
-        const userRef = await addDoc(collection(db, 'users'), { username, referralCount: 0 });
+        const userRef = await addDoc(collection(db, 'users'), { userId, username, referralCount: 0 });
         return { userId: userRef.id, username };
     } catch (error) {
         console.error("Error creating user:", error);
@@ -35,16 +43,6 @@ async function updateReferralCount(userId) {
     }
 }
 
-// Initialize the database (for testing only)
-async function initializeDatabase() {
-    try {
-        const testUser = await createUser("TestUser");
-        console.log("Database initialized with test user:", testUser);
-    } catch (error) {
-        console.error("Database initialization failed:", error);
-    }
-}
-
 // Webhook route
 app.post('/webhook', async (req, res) => {
     const { message } = req.body;
@@ -54,9 +52,18 @@ app.post('/webhook', async (req, res) => {
         const username = message.from.username || "User";
 
         try {
-            const userResponse = await createUser(username);
-            const userId = userResponse.userId;
+            // Check if the user already exists
+            let userId;
+            const existingUser = await checkUserExists(username);
+            if (existingUser) {
+                userId = existingUser.userId;
+            } else {
+                // Generate a new user ID and create the user if not found
+                userId = uuidv4();
+                await createUser(userId, username);
+            }
 
+            // Send welcome message with the existing or new user ID
             const responseText = `Welcome ${username}! Click the button below to open the CrownCoin app.`;
             const initData = JSON.stringify({ user: { id: userId, username: username } });
 
@@ -65,7 +72,7 @@ app.post('/webhook', async (req, res) => {
                     [
                         {
                             text: "Open CrownCoin App",
-                            web_app: { url: `https://crowncoin-git-main-brahimkedjar1s-projects.vercel.app/?initData=${encodeURIComponent(initData)}` }
+                            web_app: { url: `https://crowncoin.vercel.app/?initData=${encodeURIComponent(initData)}` }
                         }
                     ]
                 ]
@@ -93,7 +100,7 @@ app.get('/referral', async (req, res) => {
         const [username, userId] = referralCode.split('-');
 
         try {
-            await updateReferralCount(userId);
+            await updateReferralCount(userId); // Increment referral count
             res.send({ message: "Referral tracked successfully!" });
         } catch (error) {
             res.status(500).send({ message: "Server error." });
@@ -106,5 +113,4 @@ app.get('/referral', async (req, res) => {
 // Start the server and initialize the database
 app.listen(port, async () => {
     console.log(`Server is running on port ${port}`);
-    await initializeDatabase();
 });

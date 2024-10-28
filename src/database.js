@@ -1,14 +1,40 @@
 // src/database.js
 import { db } from "./firebase";
-import { collection, addDoc, doc, getDoc, updateDoc, query, where, getDocs } from "firebase/firestore";
+import { collection, addDoc, doc, getDoc, updateDoc, increment, query, where, getDocs } from "firebase/firestore";
 
 const usersCollection = collection(db, "users");
 
-// Create a user
+// Check if a user exists by username
+export const checkUserExists = async (username) => {
+    try {
+        const userQuery = query(usersCollection, where("username", "==", username));
+        const querySnapshot = await getDocs(userQuery);
+        
+        if (!querySnapshot.empty) {
+            // User exists, return their data
+            const userDoc = querySnapshot.docs[0];
+            return { id: userDoc.id, ...userDoc.data() };
+        }
+        // User does not exist
+        return null;
+    } catch (error) {
+        console.error("Error checking if user exists:", error);
+        throw error;
+    }
+};
+
+// Create a user if they don't already exist
 export const createUser = async (username) => {
     try {
+        // Check if user already exists
+        const existingUser = await checkUserExists(username);
+        if (existingUser) {
+            return existingUser; // Return existing user data if found
+        }
+
+        // User doesn't exist, create a new user
         const newUser = await addDoc(usersCollection, { username, referralCount: 0 });
-        return { id: newUser.id, ...newUser.data() };
+        return { id: newUser.id, username, referralCount: 0 };
     } catch (error) {
         console.error("Error creating user:", error);
         throw error;
