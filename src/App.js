@@ -10,22 +10,16 @@ const App = () => {
     useEffect(() => {
         const initApp = async () => {
             try {
-                if (window.Telegram && window.Telegram.WebApp) {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const initData = urlParams.get('initData');
+                // Simulate fetching user data with mock data for testing
+                const mockUserData = {
+                    id: '12345',
+                    first_name: 'John',
+                    last_name: 'Doe',
+                    username: 'johndoe'
+                };
 
-                    if (initData) {
-                        const parsedData = JSON.parse(decodeURIComponent(initData));
-                        const user = parsedData.user;
-
-                        // Store user data directly from the URL
-                        setUserData(user);
-                    } else {
-                        setError("No initData found in the URL.");
-                    }
-                } else {
-                    setError("Telegram Web App not initialized.");
-                }
+                // Set mock user data directly
+                setUserData(mockUserData);
             } catch (error) {
                 setError("An error occurred while initializing the Telegram Web App.");
             }
