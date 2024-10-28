@@ -1,5 +1,5 @@
 // referralService.js
-const db = require('./database'); // Import the MySQL connection pool
+const db = require('../database'); // Import the MySQL connection pool
 
 // Function to update referral count
 const updateReferralCount = async (userId) => {
