@@ -1,6 +1,7 @@
 // src/App.js
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Routes, Route } from 'react-router-dom';
+import Dashboard from './pages/Dashboard'; // Import the Dashboard component
 import './App.css'; // Ensure your styles are modern and appealing
 
 const App = () => {
@@ -44,9 +45,9 @@ const App = () => {
                 </div>
             ) : (
                 userData ? (
-                    <div className="user-welcome">
-                        <p>Welcome, <strong>{userData.first_name}!</strong></p>
-                    </div>
+                    <Routes>
+                        <Route path="/dashboard" element={<Dashboard />} />
+                    </Routes>
                 ) : (
                     <p className="error-message">Please join the bot to see your data.</p>
                 )
