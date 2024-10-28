@@ -32,7 +32,7 @@ const replyMarkup = {
         [
             {
                 text: "Open CrownCoin App",
-                web_app: { url: `https://crowncoin.vercel.app/?initData=${encodeURIComponent(initData)}` } // Pass initData in the URL
+                web_app: { url: `https://crowncoin-brahimkedjar1s-projects.vercel.app/?initData=${encodeURIComponent(initData)}` } // Pass initData in the URL
             }
         ]
     ]
