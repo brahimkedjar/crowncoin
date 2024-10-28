@@ -21,18 +21,6 @@ app.post('/webhook', async (req, res) => {
         const chatId = message.chat.id;
         const username = message.from.username || "User";
 
-<<<<<<< HEAD
-        const replyMarkup = {
-            inline_keyboard: [
-                [
-                    {
-                        text: "Open CrownCoin App",
-                        web_app: { url: "https://crowncoin.vercel.app/" }
-                    }
-                ]
-            ]
-        };
-=======
         // Store the user information
         users[chatId] = { username: username };
 
@@ -49,7 +37,6 @@ const replyMarkup = {
         ]
     ]
 };
->>>>>>> b5305bbfcaa09f40523b6dff730c3673b8b8c77b
 
         try {
             await axios.post(`${TELEGRAM_API_URL}/sendMessage`, {
