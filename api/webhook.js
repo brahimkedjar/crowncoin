@@ -1,3 +1,4 @@
+// webhook.js
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
@@ -53,6 +54,16 @@ app.post('/webhook', async (req, res) => {
     }
 
     res.sendStatus(200); // Respond to Telegram
+});
+
+// Fetch user data endpoint
+app.get('/user/:chatId', (req, res) => {
+    const chatId = req.params.chatId;
+    if (users[chatId]) {
+        res.json(users[chatId]);
+    } else {
+        res.status(404).json({ error: 'User not found' });
+    }
 });
 
 // Start the server
