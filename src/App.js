@@ -1,6 +1,5 @@
 // src/App.js
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import ReferralSystem from './components/ReferralSystem';
 import { db } from './firebase'; // Import Firebase Firestore
 import { doc, getDoc } from 'firebase/firestore';
@@ -10,7 +9,6 @@ const App = () => {
     const [userData, setUserData] = useState(null);
     const [isLoading, setLoading] = useState(true);
     const [error, setError] = useState(''); // State to store any error messages
-    const navigate = useNavigate();
 
     useEffect(() => {
         const initApp = async () => {
@@ -27,7 +25,6 @@ const App = () => {
                         // Simulating a delay for loading effect
                         setTimeout(() => {
                             setLoading(false);
-                            navigate('/dashboard', { state: { userData: user } });
                         }, 2000); // 2 seconds delay to simulate loading
                     } else {
                         setError("No initData found in the URL.");
@@ -44,7 +41,7 @@ const App = () => {
         };
 
         initApp();
-    }, [navigate]);
+    }, []);
 
     useEffect(() => {
         const fetchUserData = async () => {
