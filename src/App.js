@@ -1,6 +1,5 @@
 // src/App.js
 import React, { useEffect, useState } from 'react';
-import ReferralSystem from './components/ReferralSystem';
 import './App.css'; // Ensure your styles are modern and appealing
 
 const App = () => {
@@ -66,7 +65,6 @@ const App = () => {
                                 </ul>
                             </div>
                         </div>
-                        <ReferralSystem userData={userData} />
                     </div>
                 ) : (
                     <p className="error-message">Please join the bot to see your data.</p>
