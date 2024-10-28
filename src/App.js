@@ -1,5 +1,7 @@
 // src/App.js
 import React, { useEffect, useState } from 'react';
+import { db } from './firebase'; // Import Firebase Firestore
+import { doc, getDoc } from 'firebase/firestore';
 import './App.css'; // Ensure your styles are modern and appealing
 
 const App = () => {
@@ -9,16 +11,21 @@ const App = () => {
     useEffect(() => {
         const initApp = async () => {
             try {
-                // Simulate fetching user data with mock data for testing
-                const mockUserData = {
-                    id: '12345',
-                    first_name: 'John',
-                    last_name: 'Doe',
-                    username: 'johndoe'
-                };
+                if (window.Telegram && window.Telegram.WebApp) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const initData = urlParams.get('initData');
 
-                // Set mock user data directly
-                setUserData(mockUserData);
+                    if (initData) {
+                        const parsedData = JSON.parse(decodeURIComponent(initData));
+                        const user = parsedData.user;
+
+                        setUserData(user);
+                    } else {
+                        setError("No initData found in the URL.");
+                    }
+                } else {
+                    setError("Telegram Web App not initialized.");
+                }
             } catch (error) {
                 setError("An error occurred while initializing the Telegram Web App.");
             }
@@ -26,6 +33,25 @@ const App = () => {
 
         initApp();
     }, []);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (userData && userData.id) {
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', userData.id));
+                    if (userDoc.exists()) {
+                        setUserData(prevUserData => ({ ...prevUserData, ...userDoc.data() }));
+                    } else {
+                        setError("No user found in the database.");
+                    }
+                } catch (error) {
+                    setError("Error fetching user data: " + error.message);
+                }
+            }
+        };
+
+        fetchUserData();
+    }, [userData]); // Include userData as a dependency
 
     return (
         <div className="app-container">
