@@ -1,0 +1,51 @@
+.task-list {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.task-list h2 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.task-list ul {
+    list-style: none;
+    padding: 0;
+}
+
+.task-list li {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.task-list li:last-child {
+    border-bottom: none;
+}
+
+.task-list h3 {
+    font-size: 1.2em;
+    color: #444;
+    margin: 0;
+}
+
+.task-list p {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.task-list .btn {
+    margin-top: 10px;
+    background-color: #007bff;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.task-list .btn:hover {
+    background-color: #0056b3;
+}

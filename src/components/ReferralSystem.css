@@ -1,0 +1,13 @@
+/* src/pages/ReferralSystem.css */
+.referral-system {
+    margin-top: 20px;
+}
+
+.referral-system .btn {
+    background-color: #03a9f4;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
