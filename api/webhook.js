@@ -1,3 +1,4 @@
+// webhook.js
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
@@ -24,14 +25,13 @@ app.post('/webhook', async (req, res) => {
         users[chatId] = { username: username };
 
         const responseText = `Welcome ${username}! Click the button below to open the CrownCoin app.`;
-        const initData = JSON.stringify({ user: users[chatId] });
 
         const replyMarkup = {
             inline_keyboard: [
                 [
                     {
                         text: "Open CrownCoin App",
-                        web_app: { url: `https://crowncoin.vercel.app/?initData=${encodeURIComponent(initData)}` } // Pass initData in the URL
+                        web_app: { url: "https://crowncoin.vercel.app/" } // Just open the app
                     }
                 ]
             ]
@@ -50,6 +50,16 @@ app.post('/webhook', async (req, res) => {
     }
 
     res.sendStatus(200); // Respond to Telegram
+});
+
+// New route to get user data
+app.get('/users/:chatId', (req, res) => {
+    const chatId = req.params.chatId;
+    if (users[chatId]) {
+        res.json(users[chatId]);
+    } else {
+        res.status(404).json({ message: "User not found" });
+    }
 });
 
 // Start the server
