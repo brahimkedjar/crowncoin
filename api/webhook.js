@@ -3,7 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 const { updateReferralCount, addUser } = require('../src/components/ReferralSystem'); // Import referral logic
-const db = require('./database'); // Import the MySQL connection
+const db = require('../src/database'); // Import the MySQL connection
 
 const app = express();
 const port = process.env.PORT || 3001;
