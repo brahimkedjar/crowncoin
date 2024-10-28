@@ -27,18 +27,18 @@ app.post('/webhook', async (req, res) => {
             joinedAt: new Date(), // You can store the date or year as needed
         };
 
-        const responseText = `Welcome ${users[chatId].username}! Click the button below to open the CrownCoin app.`;
-
+const responseText = `Welcome ${users[chatId].username}! Click the button below to open the CrownCoin app.`;
+const initData = JSON.stringify({ user: users[chatId] }); // Prepare the init data
         const replyMarkup = {
-            inline_keyboard: [
-                [
-                    {
-                        text: "Open CrownCoin App",
-                        web_app: { url: "https://crowncoin.vercel.app/" } // Your React app URL
-                    }
-                ]
-            ]
-        };
+    inline_keyboard: [
+        [
+            {
+                text: "Open CrownCoin App",
+                web_app: { url: `https://crowncoin.vercel.app/?initData=${encodeURIComponent(initData)}` } // Pass initData in the URL
+            }
+        ]
+    ]
+};
 
         try {
             // Send a message with a button that links to the React app
