@@ -2,13 +2,12 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
-const { updateReferralCount, addUser } = require('../src/components/ReferralSystem'); // Import referral logic
-const db = require('../src/database'); // Import the MySQL connection
 
 const app = express();
 const port = process.env.PORT || 3001;
 const TELEGRAM_BOT_TOKEN = process.env.REACT_APP_TELEGRAM_BOT_TOKEN; // Use environment variable
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
+const API_URL = 'http://regestrationrenion.atwebpages.com/api_telegram.php'; // Update with your actual API URL
 
 app.use(bodyParser.json());
 
@@ -20,8 +19,18 @@ app.post('/webhook', async (req, res) => {
         const chatId = message.chat.id;
         const username = message.from.username || "User";
 
-        // Add the user to the database
-        const userId = await addUser(username);
+        // Add the user to the API
+        let userId;
+        try {
+            const response = await axios.post(API_URL, {
+                action: 'create_user', // Ensure your API expects this action
+                username: username
+            });
+            userId = response.data.userId; // Adjust based on your API's response structure
+        } catch (error) {
+            console.error("Error adding user:", error);
+            return res.status(500).send({ message: "Error adding user." });
+        }
 
         const responseText = `Welcome ${username}! Click the button below to open the CrownCoin app.`;
         const initData = JSON.stringify({ user: { id: userId, username: username } });
@@ -60,11 +69,14 @@ app.get('/referral', async (req, res) => {
         const [username, userId] = referralCode.split('-');
 
         try {
-            // Here, you can add logic to check if this referral is valid
-            // Increment the referrer's count
-            await updateReferralCount(userId); // This function handles the database logic
+            // Call the API to update the referral count
+            await axios.post(API_URL, {
+                action: 'update_referral_count', // Ensure your API expects this action
+                user_id: userId
+            });
             res.send({ message: "Referral tracked successfully!" });
         } catch (error) {
+            console.error("Error tracking referral:", error);
             res.status(500).send({ message: "Server error." });
         }
     } else {

@@ -1,31 +1,32 @@
-// referralService.js
-const db = require('../database'); // Import the MySQL connection pool
+const axios = require('axios'); // Ensure you have axios installed
+
+const API_URL = 'http://regestrationrenion.atwebpages.com/api_telegram.php'; // Update with your actual API URL
 
 // Function to update referral count
 const updateReferralCount = async (userId) => {
-    const connection = await db.getConnection();
     try {
-        // Increment the referrer's referral count
-        await connection.query('UPDATE users SET referral_count = referral_count + 1 WHERE id = ?', [userId]);
+        const response = await axios.post(API_URL, {
+            action: 'update_referral_count',
+            user_id: userId
+        });
+        return response.data; // Return the response from the API
     } catch (error) {
         console.error("Error updating referral count:", error);
-    } finally {
-        connection.release();
+        throw error; // Rethrow error for further handling
     }
 };
 
-// Function to add a new user (if needed)
+// Function to add a new user
 const addUser = async (username) => {
-    const connection = await db.getConnection();
     try {
-        // Insert a new user and return the ID
-        const [result] = await connection.query('INSERT INTO users (username) VALUES (?)', [username]);
-        return result.insertId;
+        const response = await axios.post(API_URL, {
+            action: 'create_user',
+            username: username
+        });
+        return response.data; // Return the response from the API
     } catch (error) {
         console.error("Error adding user:", error);
         throw error; // Rethrow error for further handling
-    } finally {
-        connection.release();
     }
 };
 
