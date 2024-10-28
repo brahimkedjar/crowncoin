@@ -1,28 +1,32 @@
-// src/pages/ReferralSystem.js
-import React, { useState } from 'react';
-import './ReferralSystem.css';
+// referralService.js
+const db = require('./database'); // Import the MySQL connection pool
 
-function ReferralSystem({ userData }) {
-    const [referralCode, setReferralCode] = useState('');
+// Function to update referral count
+const updateReferralCount = async (userId) => {
+    const connection = await db.getConnection();
+    try {
+        // Increment the referrer's referral count
+        await connection.query('UPDATE users SET referral_count = referral_count + 1 WHERE id = ?', [userId]);
+    } catch (error) {
+        console.error("Error updating referral count:", error);
+    } finally {
+        connection.release();
+    }
+};
 
-    const generateReferralCode = () => {
-        const code = userData ? `${userData.username}-${userData.id}` : '';
-        setReferralCode(code);
-    };
+// Function to add a new user (if needed)
+const addUser = async (username) => {
+    const connection = await db.getConnection();
+    try {
+        // Insert a new user and return the ID
+        const [result] = await connection.query('INSERT INTO users (username) VALUES (?)', [username]);
+        return result.insertId;
+    } catch (error) {
+        console.error("Error adding user:", error);
+        throw error; // Rethrow error for further handling
+    } finally {
+        connection.release();
+    }
+};
 
-    return (
-        <div className="referral-system">
-            <h3>Invite Friends and Earn Rewards</h3>
-            <button className="btn" onClick={generateReferralCode}>
-                Generate Referral Code
-            </button>
-            {referralCode && (
-                <p>
-                    Your referral code: <strong>{referralCode}</strong>
-                </p>
-            )}
-        </div>
-    );
-}
-
-export default ReferralSystem;
+module.exports = { updateReferralCount, addUser }; // Export functions for use in webhook.js
