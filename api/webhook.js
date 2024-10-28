@@ -66,6 +66,19 @@ app.get('/user/:chatId', (req, res) => {
     }
 });
 
+// Handle join year update
+app.post('/user/:chatId', (req, res) => {
+    const chatId = req.params.chatId;
+    const { joinYear } = req.body;
+
+    if (users[chatId]) {
+        users[chatId].joinYear = joinYear; // Store the join year
+        res.json({ message: 'Join year updated successfully!', user: users[chatId] });
+    } else {
+        res.status(404).json({ error: 'User not found' });
+    }
+});
+
 // Start the server
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
