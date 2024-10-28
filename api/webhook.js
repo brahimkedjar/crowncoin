@@ -7,6 +7,30 @@ const app = express();
 const port = process.env.PORT || 3001;
 const TELEGRAM_BOT_TOKEN = process.env.REACT_APP_TELEGRAM_BOT_TOKEN; // Use environment variable
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
+// Add this to your existing webhook.js or create a new routes file
+const express = require('express');
+const router = express.Router();
+const { updateReferralCount } = require('./referralService'); // A service to handle referral logic
+
+// Endpoint to handle referral tracking
+router.get('/referral', async (req, res) => {
+    const referralCode = req.query.code;
+
+    if (referralCode) {
+        const [username, userId] = referralCode.split('-');
+        
+        // Here, you can add logic to check if this referral is valid,
+        // e.g., check if the user already exists or is new.
+        
+        // Increment the referrer's count
+        await updateReferralCount(userId); // This function should handle the database logic
+        res.send({ message: "Referral tracked successfully!" });
+    } else {
+        res.status(400).send({ message: "Invalid referral code." });
+    }
+});
+
+module.exports = router;
 
 app.use(bodyParser.json());
 
