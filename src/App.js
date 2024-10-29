@@ -8,7 +8,6 @@ import {
     logReferralClick,
 } from './database';
 import './App.css';
-// Removed ReferralHandler import
 
 const App = () => {
     const [userData, setUserData] = useState(null);
@@ -26,9 +25,10 @@ const App = () => {
                     if (initData) {
                         const parsedData = JSON.parse(decodeURIComponent(initData));
                         setUserData(parsedData.user);
-                        // Generate the referral link
-                        const referralCode = parsedData.user.referralCode; // Assuming the referral code is stored in user data
-                        setReferralLink(`${window.location.origin}/referral/${referralCode}`);
+
+                        const referralCode = parsedData.user.id; // Use user ID as referral code
+                        const botUsername = 'CROWNCOINOFFICIAL_bot';
+                        setReferralLink(`https://t.me/${botUsername}?start=${referralCode}`);
                     } else {
                         setError("No initData found in the URL.");
                     }
@@ -44,10 +44,9 @@ const App = () => {
     }, []);
 
     const handleReferralClick = async (referralCode) => {
-        const userId = userData.id; // Assuming userId is in userData
+        const userId = userData.id;
         await logReferralClick(referralCode, userId);
-        // Optionally, open the Telegram bot
-        window.open('https://t.me/CROWNCOINOFFICIAL_bot'); // Replace with your bot's username
+        window.open(`https://t.me/CROWNCOINOFFICIAL_bot?start=${referralCode}`, '_blank');
     };
 
     const handleManualWalletSubmit = () => {
@@ -84,7 +83,7 @@ const App = () => {
                                 <h3>Earn Rewards by Completing These Tasks:</h3>
                                 <ul className="task-list">
                                     <li>
-                                        <a href="https://www.instagram.com/crowncoin_by_ton/profilecard/?igsh=OHFvbDk2a3N5cW03" target="_blank" rel="noopener noreferrer" className="task-button">
+                                        <a href="https://www.instagram.com/crowncoin_by_ton?igsh=OHFvbDk2a3N5cW03" target="_blank" rel="noopener noreferrer" className="task-button">
                                             👍 Like Our Instagram Page
                                         </a>
                                     </li>
@@ -99,22 +98,6 @@ const App = () => {
                                         </a>
                                     </li>
                                 </ul>
-                            </div>
-
-                            <div className="wallet-section modern-section">
-                                <h3>Connect to TON Wallet</h3>
-                                <div className="manual-wallet-input">
-                                    <input 
-                                        type="text" 
-                                        placeholder="Paste your wallet address" 
-                                        value={manualWalletAddress} 
-                                        onChange={(e) => setManualWalletAddress(e.target.value)} 
-                                        className="wallet-input" 
-                                    />
-                                    <button onClick={handleManualWalletSubmit} className="save-wallet-button">
-                                        Save Wallet Address
-                                    </button>
-                                </div>
                             </div>
 
                             <div className="referral-section modern-section">

@@ -1,10 +1,9 @@
-// webhook.js
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 const { db } = require('../src/firebase'); // Import Firebase Firestore
 const { addDoc, collection, doc, getDoc, increment, updateDoc } = require('firebase/firestore');
-const { v4: uuidv4 } = require('uuid'); // UUID library for unique user IDs
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -47,25 +46,27 @@ async function updateReferralCount(userId) {
 app.post('/webhook', async (req, res) => {
     const { message } = req.body;
 
-    if (message && message.text === '/start') {
+    if (message && message.text.startsWith('/start')) {
         const chatId = message.chat.id;
         const username = message.from.username || "User";
+        const referralCode = message.text.split(' ')[1] || ''; 
 
         try {
-            // Check if the user already exists
             let userId;
             const existingUser = await checkUserExists(username);
             if (existingUser) {
                 userId = existingUser.userId;
             } else {
-                // Generate a new user ID and create the user if not found
                 userId = uuidv4();
                 await createUser(userId, username);
+
+                if (referralCode) {
+                    await updateReferralCount(referralCode);
+                }
             }
 
-            // Send welcome message with the existing or new user ID
             const responseText = `Welcome ${username}! Click the button below to open the CrownCoin app.`;
-            const initData = JSON.stringify({ user: { id: userId, username: username } });
+            const initData = JSON.stringify({ user: { id: userId, username } });
 
             const replyMarkup = {
                 inline_keyboard: [
@@ -73,6 +74,14 @@ app.post('/webhook', async (req, res) => {
                         {
                             text: "Open CrownCoin App",
                             web_app: { url: `https://crowncoinbyton.vercel.app/?initData=${encodeURIComponent(initData)}` }
+                        },
+                        {
+                            text: "🚀 Join Our Telegram Group",
+                            web_app: { url: `https://t.me/crowncointon` }
+                        },
+                        {
+                            text: "👍 Like Our Instagram Page",
+                            web_app: { url: `https://www.instagram.com/crowncoin_by_ton?igsh=OHFvbDk2a3N5cW03` }
                         }
                     ]
                 ]
@@ -97,10 +106,8 @@ app.get('/referral', async (req, res) => {
     const referralCode = req.query.code;
 
     if (referralCode) {
-        const [username, userId] = referralCode.split('-');
-
         try {
-            await updateReferralCount(userId); // Increment referral count
+            await updateReferralCount(referralCode);
             res.send({ message: "Referral tracked successfully!" });
         } catch (error) {
             res.status(500).send({ message: "Server error." });
@@ -110,7 +117,7 @@ app.get('/referral', async (req, res) => {
     }
 });
 
-// Start the server and initialize the database
-app.listen(port, async () => {
+// Start server
+app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });

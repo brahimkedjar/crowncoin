@@ -1,8 +1,12 @@
-// src/database.js
 const { db } = require("./firebase");
-const { collection, addDoc, doc, getDoc, updateDoc, arrayUnion , query, where, getDocs } = require("firebase/firestore");
+const { collection, addDoc, doc, getDoc, updateDoc, arrayUnion, query, where, getDocs } = require("firebase/firestore");
 
 const usersCollection = collection(db, "users");
+
+// Helper function to generate a unique referral code
+const generateReferralCode = () => {
+    return Math.random().toString(36).substring(2, 10); // generates a random 8-character code
+};
 
 // Check if a user exists by username
 const checkUserExists = async (username) => {
@@ -26,13 +30,17 @@ const createUser = async (username) => {
     try {
         const existingUser = await checkUserExists(username);
         if (existingUser) {
-            // If user already exists, return their details instead of creating a new account
             return existingUser;
         }
-
-        // Create a new user only if no existing user was found
-        const newUser = await addDoc(usersCollection, { username, referralCount: 0 });
-        return { id: newUser.id, username, referralCount: 0 };
+        
+        const referralCode = generateReferralCode(); // Generate unique referral code
+        const newUser = await addDoc(usersCollection, { 
+            username, 
+            referralCode, 
+            referralCount: 0, 
+            referredUsers: [] // Array to store users who used this user's referral code
+        });
+        return { id: newUser.id, username, referralCode, referralCount: 0, referredUsers: [] };
     } catch (error) {
         console.error("Error creating user:", error);
         throw error;
@@ -45,7 +53,7 @@ const getUser = async (userId) => {
         const userRef = doc(db, "users", userId);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
-            return userSnap.data();
+            return { id: userId, ...userSnap.data() };
         } else {
             throw new Error("User not found.");
         }
@@ -55,29 +63,47 @@ const getUser = async (userId) => {
     }
 };
 
- const logReferralClick = async (referralCode, userId) => {
-    const userRef = doc(db, 'users', referralCode); // Get the user by referral code
-    const userSnapshot = await getDoc(userRef);
-    
-    if (userSnapshot.exists()) {
-        // Increment referral count
-        await updateDoc(userRef, {
-            referrals: userSnapshot.data().referrals + 1,
-            referralClicks: arrayUnion(userId) // Store the IDs of users who clicked
-        });
+// Log a referral click and update count and referred users
+const logReferralClick = async (referralCode, referredUserName) => {
+    try {
+        const userQuery = query(usersCollection, where("referralCode", "==", referralCode));
+        const querySnapshot = await getDocs(userQuery);
+
+        if (!querySnapshot.empty) {
+            const userDoc = querySnapshot.docs[0];
+            const userRef = doc(db, "users", userDoc.id);
+
+            await updateDoc(userRef, {
+                referralCount: (userDoc.data().referralCount || 0) + 1,
+                referredUsers: arrayUnion(referredUserName) // Add the referred user's name
+            });
+        } else {
+            console.error("Referral user does not exist.");
+        }
+    } catch (error) {
+        console.error("Error logging referral click:", error);
     }
 };
 
 // Function to get referrals for a specific user
- const getReferrals = async (userId) => {
-    const userRef = doc(db, 'users', userId);
-    const userSnapshot = await getDoc(userRef);
-    
-    if (userSnapshot.exists()) {
-        return userSnapshot.data().referrals; // Return the number of referrals
+const getReferrals = async (userId) => {
+    try {
+        const userRef = doc(db, "users", userId);
+        const userSnapshot = await getDoc(userRef);
+
+        if (userSnapshot.exists()) {
+            const data = userSnapshot.data();
+            return {
+                referralCount: data.referralCount || 0,
+                referredUsers: data.referredUsers || []
+            };
+        } else {
+            throw new Error("User not found.");
+        }
+    } catch (error) {
+        console.error("Error fetching referrals:", error);
+        throw error;
     }
-    
-    return 0;
 };
 
 module.exports = { checkUserExists, createUser, getUser, getReferrals, logReferralClick };
