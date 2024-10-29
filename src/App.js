@@ -1,11 +1,12 @@
 // src/App.js
-import React, { useEffect, useState } from 'react';
-
-import './App.css'; // Ensure your styles are modern and appealing
+const React = require('react');
+const { useEffect, useState } = require('react');
+const { checkUserExists, createUser, getUser, updateReferralCount, getReferrals } = require('./database');
+require('./App.css'); // Ensure your styles are modern and appealing
 
 const App = () => {
     const [userData, setUserData] = useState(null);
-    const [error, setError] = useState(''); // State to store any error messages
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const initApp = async () => {
@@ -32,8 +33,6 @@ const App = () => {
 
         initApp();
     }, []);
-
-   
 
     return (
         <div className="app-container">
@@ -82,4 +81,4 @@ const App = () => {
     );
 };
 
-export default App;
+module.exports = App;
