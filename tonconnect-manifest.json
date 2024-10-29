@@ -1,0 +1,10 @@
+{
+    "manifest_version": "0.1",
+    "name": "CrownCoin",
+    "description": "A bot and DApp for the CrownCoin token supported by TON",
+    "url": "https://crowncoinbyton.vercel.app/",  
+    "icons": [
+      "https://i.ibb.co/mXgX3pm/crown1.jpg"  
+    ]
+  }
+  
