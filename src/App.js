@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { TonConnect } from '@tonconnect/sdk';
+import { checkUserExists, createUser, getUser, updateReferralCount, getReferrals } from './database';
 import './App.css';
 
 const App = () => {
     const [userData, setUserData] = useState(null);
-    const [walletAddress, setWalletAddress] = useState('');
     const [error, setError] = useState('');
-    const tonConnect = new TonConnect({ manifestUrl: 'https://crowncoinbyton.vercel.app/tonconnect-manifest.json' });
+    const [walletAddress, setWalletAddress] = useState('');
 
     useEffect(() => {
         const initApp = async () => {
@@ -33,12 +32,9 @@ const App = () => {
 
     const connectToTonWallet = async () => {
         try {
-            const connection = await tonConnect.connectWallet();
-            if (connection.status === 'connected') {
-                setWalletAddress(connection.wallet.address);
-            } else {
-                setError("Failed to connect to TON Wallet.");
-            }
+            // Add wallet connection logic here
+            const mockWalletAddress = 'EQBxY6h_A1MlQxZ5Rj9u5IQ8xGdvP_abcdefg';
+            setWalletAddress(mockWalletAddress);
         } catch (error) {
             setError("Failed to connect to TON Wallet.");
         }
@@ -61,10 +57,37 @@ const App = () => {
                     <div className="dashboard">
                         <h2 className="dashboard-title">Welcome, <strong>{userData.username}</strong></h2>
                         <div className="dashboard-content">
-                            <h3>Connect to TON Wallet</h3>
-                            <button onClick={connectToTonWallet} className="connect-wallet-button">
-                                {walletAddress ? `Connected: ${walletAddress}` : 'Connect Wallet'}
-                            </button>
+                            <div className="airdrop-info">
+                                <h3>Airdrop & TGE Details</h3>
+                                <p>To be eligible for rewards, please complete the tasks below:</p>
+                            </div>
+                            <div className="tasks-section">
+                                <h3>Earn Rewards by Completing These Tasks:</h3>
+                                <ul className="task-list">
+                                    <li>
+                                        <a href="https://example.com/like-page" target="_blank" rel="noopener noreferrer" className="task-button">
+                                            👍 Like Our Facebook Page
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="https://example.com/join-telegram" target="_blank" rel="noopener noreferrer" className="task-button">
+                                            🚀 Join Our Telegram Group
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="https://example.com/refer-friends" target="_blank" rel="noopener noreferrer" className="task-button">
+                                            🤝 Refer Friends to CrownCoin
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div className="wallet-section">
+                                <h3>Connect to TON Wallet</h3>
+                                <button onClick={connectToTonWallet} className="connect-wallet-button">
+                                    {walletAddress ? `Connected: ${walletAddress}` : 'Connect Wallet'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 ) : (
