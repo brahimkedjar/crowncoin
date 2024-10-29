@@ -95,3 +95,34 @@
 .connect-wallet-button:hover {
   background-color: #388e3c;
 }
+.wallet-section {
+  margin: 20px 0;
+}
+
+.wallet-input {
+  width: 70%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-right: 10px;
+}
+
+.save-wallet-button, .connect-wallet-button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  background-color: #007bff; /* Primary color */
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.save-wallet-button:hover, .connect-wallet-button:hover {
+  background-color: #0056b3; /* Darker shade on hover */
+}
+
+.manual-wallet-input {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}

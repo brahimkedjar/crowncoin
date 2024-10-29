@@ -1,6 +1,6 @@
 // src/database.js
 const { db } = require("./firebase");
-const { collection, addDoc, doc, getDoc, updateDoc, increment, query, where, getDocs } = require("firebase/firestore");
+const { collection, addDoc, doc, getDoc, updateDoc, arrayUnion , query, where, getDocs } = require("firebase/firestore");
 
 const usersCollection = collection(db, "users");
 
@@ -55,29 +55,29 @@ const getUser = async (userId) => {
     }
 };
 
-// Update referral count
-const updateReferralCount = async (userId) => {
-    try {
-        const userRef = doc(db, "users", userId);
-        await updateDoc(userRef, { referralCount: increment(1) });
-        return { message: "Referral count updated successfully." };
-    } catch (error) {
-        console.error("Error updating referral count:", error);
-        throw error;
+export const logReferralClick = async (referralCode, userId) => {
+    const userRef = doc(db, 'users', referralCode); // Get the user by referral code
+    const userSnapshot = await getDoc(userRef);
+    
+    if (userSnapshot.exists()) {
+        // Increment referral count
+        await updateDoc(userRef, {
+            referrals: userSnapshot.data().referrals + 1,
+            referralClicks: arrayUnion(userId) // Store the IDs of users who clicked
+        });
     }
 };
 
-// Get referrals for a user
-const getReferrals = async (userId) => {
-    try {
-        const referralsQuery = query(collection(db, "referrals"), where("referrerId", "==", userId));
-        const querySnapshot = await getDocs(referralsQuery);
-        const referrals = querySnapshot.docs.map(doc => doc.data());
-        return referrals;
-    } catch (error) {
-        console.error("Error fetching referrals:", error);
-        throw error;
+// Function to get referrals for a specific user
+export const getReferrals = async (userId) => {
+    const userRef = doc(db, 'users', userId);
+    const userSnapshot = await getDoc(userRef);
+    
+    if (userSnapshot.exists()) {
+        return userSnapshot.data().referrals; // Return the number of referrals
     }
+    
+    return 0;
 };
 
-module.exports = { checkUserExists, createUser, getUser, updateReferralCount, getReferrals };
+module.exports = { checkUserExists, createUser, getUser, getReferrals, logReferralClick };
