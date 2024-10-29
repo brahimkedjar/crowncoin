@@ -55,7 +55,7 @@ const getUser = async (userId) => {
     }
 };
 
-export const logReferralClick = async (referralCode, userId) => {
+ const logReferralClick = async (referralCode, userId) => {
     const userRef = doc(db, 'users', referralCode); // Get the user by referral code
     const userSnapshot = await getDoc(userRef);
     
@@ -69,7 +69,7 @@ export const logReferralClick = async (referralCode, userId) => {
 };
 
 // Function to get referrals for a specific user
-export const getReferrals = async (userId) => {
+ const getReferrals = async (userId) => {
     const userRef = doc(db, 'users', userId);
     const userSnapshot = await getDoc(userRef);
     
