@@ -74,15 +74,8 @@ app.post('/webhook', async (req, res) => {
                         {
                             text: "Open CrownCoin App",
                             web_app: { url: `https://crowncoinbyton.vercel.app/?initData=${encodeURIComponent(initData)}` }
-                        },
-                        {
-                            text: "🚀 Join Our Telegram Group",
-                            web_app: { url: `https://t.me/crowncointon` }
-                        },
-                        {
-                            text: "👍 Like Our Instagram Page",
-                            web_app: { url: `https://www.instagram.com/crowncoin_by_ton?igsh=OHFvbDk2a3N5cW03` }
                         }
+                    
                     ]
                 ]
             };
