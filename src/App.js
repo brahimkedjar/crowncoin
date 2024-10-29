@@ -1,8 +1,6 @@
-// src/App.js
-const React = require('react');
-const { useEffect, useState } = require('react');
-const { checkUserExists, createUser, getUser, updateReferralCount, getReferrals } = require('./database');
-require('./App.css'); // Ensure your styles are modern and appealing
+import React, { useEffect, useState } from 'react';
+import { checkUserExists, createUser, getUser, updateReferralCount, getReferrals } from './database';
+import './App.css';
 
 const App = () => {
     const [userData, setUserData] = useState(null);
@@ -36,7 +34,12 @@ const App = () => {
 
     return (
         <div className="app-container">
-            <h1 className="app-title">CrownCoin App</h1>
+            <header className="app-header">
+                <img src="/path/to/crowncoin-icon.png" alt="CrownCoin" className="app-logo" />
+                <h1 className="app-title">CrownCoin</h1>
+                <p className="sub-text">Supported by TON, coming soon to top exchanges.</p>
+            </header>
+
             {error ? (
                 <div className="error-message">
                     <p>{error}</p>
@@ -44,29 +47,28 @@ const App = () => {
             ) : (
                 userData ? (
                     <div className="dashboard">
-                        <h2 className="dashboard-title">Dashboard</h2>
+                        <h2 className="dashboard-title">Welcome, <strong>{userData.username}</strong></h2>
                         <div className="dashboard-content">
-                            <p>Welcome, <strong>{userData.username}</strong></p>
                             <div className="airdrop-info">
-                                <h3>Airdrop and TGE Information</h3>
-                                <p>The airdrop and TGE will start when the app reaches 1 million users. Invite your friends to help us reach this milestone!</p>
+                                <h3>Airdrop & TGE Details</h3>
+                                <p>The airdrop and TGE will activate at 1 million users. Share and invite friends to join the CrownCoin community!</p>
                             </div>
                             <div className="tasks-section">
-                                <h3>Complete These Tasks to Earn Rewards:</h3>
-                                <ul>
+                                <h3>Earn Rewards by Completing These Tasks:</h3>
+                                <ul className="task-list">
                                     <li>
                                         <a href="https://example.com/like-page" target="_blank" rel="noopener noreferrer">
-                                            Like Our Facebook Page
+                                            <i className="task-icon fa fa-thumbs-up"></i> Like Our Facebook Page
                                         </a>
                                     </li>
                                     <li>
                                         <a href="https://example.com/join-telegram" target="_blank" rel="noopener noreferrer">
-                                            Join Our Telegram Group
+                                            <i className="task-icon fa fa-paper-plane"></i> Join Our Telegram Group
                                         </a>
                                     </li>
                                     <li>
                                         <a href="https://example.com/refer-friends" target="_blank" rel="noopener noreferrer">
-                                            Refer Friends to the App
+                                            <i className="task-icon fa fa-user-friends"></i> Refer Friends to CrownCoin
                                         </a>
                                     </li>
                                 </ul>
