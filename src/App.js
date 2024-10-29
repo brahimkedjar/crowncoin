@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import TonConnect from '@tonconnect/sdk';
 import { checkUserExists, createUser, getUser, updateReferralCount, getReferrals } from './database';
 import './App.css';
 
@@ -32,9 +33,19 @@ const App = () => {
 
     const connectToTonWallet = async () => {
         try {
-            // Add wallet connection logic here
-            const mockWalletAddress = 'EQBxY6h_A1MlQxZ5Rj9u5IQ8xGdvP_abcdefg';
-            setWalletAddress(mockWalletAddress);
+            const tonConnect = new TonConnect({
+                manifestUrl: 'https://tonwallet-two.vercel.app/tonconnect-manifest.json'  // Replace with your actual manifest URL
+            });
+
+            // Prompt the user to select a wallet
+            await tonConnect.connectWallet();
+            
+            // Subscribe to connection events
+            tonConnect.onStatusChange((status) => {
+                if (status.wallet) {
+                    setWalletAddress(status.wallet.address);  // Set the connected wallet address
+                }
+            });
         } catch (error) {
             setError("Failed to connect to TON Wallet.");
         }
@@ -43,9 +54,10 @@ const App = () => {
     return (
         <div className="app-container">
             <header className="app-header">
-                <img src="/images/crown1.jpg" alt="CrownCoin" className="app-logo" />
+                <img src="https://i.ibb.co/mXgX3pm/crown1.jpg" alt="CrownCoin" className="app-logo" />
                 <h1 className="app-title">CrownCoin</h1>
                 <p className="sub-text">Supported by TON, soon listed on major exchanges.</p>
+                <p className="eligibility-message">🚀 Only the first 1 million users will be eligible for the airdrop! Join now!</p>
             </header>
 
             {error ? (
@@ -57,11 +69,11 @@ const App = () => {
                     <div className="dashboard">
                         <h2 className="dashboard-title">Welcome, <strong>{userData.username}</strong></h2>
                         <div className="dashboard-content">
-                            <div className="airdrop-info">
+                            <div className="airdrop-info modern-section">
                                 <h3>Airdrop & TGE Details</h3>
                                 <p>To be eligible for rewards, please complete the tasks below:</p>
                             </div>
-                            <div className="tasks-section">
+                            <div className="tasks-section modern-section">
                                 <h3>Earn Rewards by Completing These Tasks:</h3>
                                 <ul className="task-list">
                                     <li>
@@ -82,7 +94,7 @@ const App = () => {
                                 </ul>
                             </div>
 
-                            <div className="wallet-section">
+                            <div className="wallet-section modern-section">
                                 <h3>Connect to TON Wallet</h3>
                                 <button onClick={connectToTonWallet} className="connect-wallet-button">
                                     {walletAddress ? `Connected: ${walletAddress}` : 'Connect Wallet'}

@@ -26,9 +26,11 @@ const createUser = async (username) => {
     try {
         const existingUser = await checkUserExists(username);
         if (existingUser) {
+            // If user already exists, return their details instead of creating a new account
             return existingUser;
         }
 
+        // Create a new user only if no existing user was found
         const newUser = await addDoc(usersCollection, { username, referralCount: 0 });
         return { id: newUser.id, username, referralCount: 0 };
     } catch (error) {
