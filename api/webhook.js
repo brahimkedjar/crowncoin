@@ -113,6 +113,12 @@ app.post('/webhook', async (req, res) => {
                             text: "Open CrownCoin App",
                             web_app: { url: `https://crowncoinbyton.vercel.app/?initData=${encodeURIComponent(initData)}` }
                         }
+                    ],
+                    [
+                        {
+                            text: "Join Our Community",
+                            url: "https://t.me/crowncointon"
+                        }
                     ]
                 ]
             };
