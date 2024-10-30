@@ -28,7 +28,7 @@
 .task-button.completed {
     background-color: #ccc;
     color: #666;
-    cursor: not-allowed;
+    cursor: pointer;
 }
 
 .task-link {
@@ -40,6 +40,20 @@
     color: #4caf50;
     font-size: 1.5rem;
     animation: fadeIn 0.5s ease-in-out;
+}
+
+.loading-spinner {
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid #4caf50;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 @keyframes fadeIn {

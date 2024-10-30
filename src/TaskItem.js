@@ -3,15 +3,18 @@ import { FaCheckCircle } from 'react-icons/fa';
 import './TaskItem.css';
 
 const TaskItem = ({ taskUrl, taskText }) => {
+    const [isLoading, setIsLoading] = useState(false);
     const [isCompleted, setIsCompleted] = useState(false);
 
     const handleClick = () => {
-        if (!isCompleted) {
-            setIsCompleted(true);
-            // You can add any additional logic here if needed, like calling an API.
+        if (!isLoading && !isCompleted) {
+            setIsLoading(true);
             setTimeout(() => {
-                setIsCompleted(true); // Sets completed state after 5 seconds
-            }, 5000);
+                setIsLoading(false);
+                setIsCompleted(true);
+            }, 6000); // 5-second delay
+        } else if (isCompleted) {
+            setIsCompleted(false); // Reset to allow re-clicking
         }
     };
 
@@ -19,7 +22,6 @@ const TaskItem = ({ taskUrl, taskText }) => {
         <button 
             className={`task-button ${isCompleted ? 'completed' : ''}`} 
             onClick={handleClick}
-            disabled={isCompleted}
         >
             <a 
                 href={taskUrl} 
@@ -27,7 +29,9 @@ const TaskItem = ({ taskUrl, taskText }) => {
                 rel="noopener noreferrer"
                 className="task-link"
             >
-                {isCompleted ? (
+                {isLoading ? (
+                    <div className="loading-spinner"></div>
+                ) : isCompleted ? (
                     <FaCheckCircle className="done-icon" />
                 ) : (
                     <span>{taskText}</span>
