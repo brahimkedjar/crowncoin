@@ -161,22 +161,31 @@ const App = () => {
     </div>
     {/* Modern line separator */}
     <div className="separator"></div>
+    
     {leaderboardData.length > 0 ? (
-        <ul className="leaderboard-list">
-            {leaderboardData.map((user, index) => (
-                <li key={index} className={`leaderboard-item ${index < 3 ? 'top-three' : ''}`}>
-                    <span className="leaderboard-rank" style={{ color: 'black' }}>
-                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}.
-                    </span>
-                    <span className="leaderboard-username">{user.username}</span>
-                    <span className="leaderboard-referrals">{user.referralCount} referrals</span>
-                </li>
-            ))}
-        </ul>
+        <>
+            <div className="leaderboard-header">
+                <span className="leaderboard-rank">Rank</span>
+                <span className="leaderboard-username">Username</span>
+                <span className="leaderboard-referrals">Referrals</span>
+            </div>
+            <ul className="leaderboard-list">
+                {leaderboardData.map((user, index) => (
+                    <li key={index} className={`leaderboard-item ${index < 3 ? 'top-three' : ''}`}>
+                        <span className="leaderboard-rank" style={{ color: 'black' }}>
+                            {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}.
+                        </span>
+                        <span className="leaderboard-username">{user.username}</span>
+                        <span className="leaderboard-referrals">{user.referralCount}</span>
+                    </li>
+                ))}
+            </ul>
+        </>
     ) : (
         <div className="no-data-message">No leaderboard data available.</div>
     )}
 </div>
+
 
             )}
             <BottomNav onNavigate={handleNavigate} />
