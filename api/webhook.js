@@ -39,6 +39,7 @@ const checkUserExists = async (username) => {
 };
 
 // Create a user if they don't already exist
+// Create a user if they don't already exist
 const createUser = async (username) => {
     try {
         const existingUser = await checkUserExists(username);
@@ -46,19 +47,21 @@ const createUser = async (username) => {
             return existingUser;
         }
         
-        const referralCode = generateReferralCode(); // Generate unique referral code
+        // Use userId as the referral code
+        const newUserId = uuidv4(); // Generate unique ID for new user
         const newUser = await addDoc(usersCollection, { 
             username, 
-            referralCode, 
+            referralCode: newUserId, // Set referral code as user ID
             referralCount: 0, 
-            referredUsers: [] // Array to store users who used this user's referral code
+            referredUsers: [] 
         });
-        return { id: newUser.id, username, referralCode, referralCount: 0, referredUsers: [] };
+        return { id: newUser.id, username, referralCode: newUserId, referralCount: 0, referredUsers: [] };
     } catch (error) {
         console.error("Error creating user:", error);
         throw error;
     }
 };
+
 
 // Handle referral access by incrementing referral count and logging referred users
 const handleReferralAccess = async (referralCode, newUserId) => {
