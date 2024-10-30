@@ -31,7 +31,7 @@ const App = () => {
                         setUserData(parsedData.user);
 
                         const botUsername = 'CROWNCOINOFFICIAL_bot';
-                        setReferralLink(`https://t.me/${botUsername}?start=${userId}`);
+                        setReferralLink(`https://t.me/${botUsername}?start=${parsedData.user.refferal}`);
 
                         // Check for a referral code in the URL
                         if (parsedData.referralCode) {

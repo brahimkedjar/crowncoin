@@ -67,7 +67,7 @@ const createUser = async (username) => {
 const handleReferralAccess = async (referralCode, newUserId) => {
     try {
         // Find the user who owns the referral code
-        const referrerQuery = query(usersCollection, where("referralCode", "==", referralCode));
+        const referrerQuery = query(usersCollection, where("referralCode", "==", newUserId));
         const referrerSnapshot = await getDocs(referrerQuery);
 
         if (!referrerSnapshot.empty) {
@@ -120,7 +120,7 @@ app.post('/webhook', async (req, res) => {
 
             // Send response with welcome message and referral link
             const responseText = `Welcome ${username}! Click the button below to open the CrownCoin app.`;
-            const initData = JSON.stringify({ user: { id: user.id, username } });
+            const initData = JSON.stringify({ user: { id: user.id, username,refferal:user.referralCode } });
 
             const replyMarkup = {
                 inline_keyboard: [
