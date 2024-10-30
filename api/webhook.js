@@ -1,48 +1,88 @@
+// Firebase setup and utility functions
+const { db } = require("./firebase");
+const { collection, addDoc, doc, getDoc, updateDoc, arrayUnion, query, where, getDocs, onSnapshot, increment } = require("firebase/firestore");
+const { v4: uuidv4 } = require('uuid');
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
-const { db } = require('../src/firebase'); // Import Firebase Firestore
-const { addDoc, collection, doc, getDoc, increment, updateDoc } = require('firebase/firestore');
-const { v4: uuidv4 } = require('uuid');
 
-const app = express();
-const port = process.env.PORT || 3001;
 const TELEGRAM_BOT_TOKEN = process.env.REACT_APP_TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
+const app = express();
+const port = process.env.PORT || 3001;
+
 app.use(bodyParser.json());
 
-// Check if a user already exists by username
-async function checkUserExists(username) {
-    const usersRef = collection(db, 'users');
-    const userSnapshot = await getDoc(doc(usersRef, username));
-    return userSnapshot.exists() ? userSnapshot.data() : null;
-}
+const usersCollection = collection(db, "users");
 
-// Create a new user in Firestore
-async function createUser(userId, username) {
+// Helper function to generate a unique referral code
+const generateReferralCode = () => {
+    return Math.random().toString(36).substring(2, 10); // Generates a random 8-character code
+};
+
+// Check if a user exists by username
+const checkUserExists = async (username) => {
     try {
-        const userRef = await addDoc(collection(db, 'users'), { userId, username, referralCount: 0 });
-        return { userId: userRef.id, username };
+        const userQuery = query(usersCollection, where("username", "==", username));
+        const querySnapshot = await getDocs(userQuery);
+        
+        if (!querySnapshot.empty) {
+            const userDoc = querySnapshot.docs[0];
+            return { id: userDoc.id, ...userDoc.data() };
+        }
+        return null;
+    } catch (error) {
+        console.error("Error checking if user exists:", error);
+        throw error;
+    }
+};
+
+// Create a user if they don't already exist
+const createUser = async (username) => {
+    try {
+        const existingUser = await checkUserExists(username);
+        if (existingUser) {
+            return existingUser;
+        }
+        
+        const referralCode = generateReferralCode(); // Generate unique referral code
+        const newUser = await addDoc(usersCollection, { 
+            username, 
+            referralCode, 
+            referralCount: 0, 
+            referredUsers: [] // Array to store users who used this user's referral code
+        });
+        return { id: newUser.id, username, referralCode, referralCount: 0, referredUsers: [] };
     } catch (error) {
         console.error("Error creating user:", error);
         throw error;
     }
-}
+};
 
-// Update the referral count
-async function updateReferralCount(userId) {
+// Log a referral click and update count and referred users
+const logReferralClick = async (referralCode, referredUserName) => {
     try {
-        const userRef = doc(db, 'users', userId);
-        await updateDoc(userRef, { referralCount: increment(1) });
-        console.log("Referral count incremented for user:", userId);
-    } catch (error) {
-        console.error("Error updating referral count:", error);
-        throw error;
-    }
-}
+        const userQuery = query(usersCollection, where("referralCode", "==", referralCode));
+        const querySnapshot = await getDocs(userQuery);
 
-// Webhook route
+        if (!querySnapshot.empty) {
+            const userDoc = querySnapshot.docs[0];
+            const userRef = doc(db, "users", userDoc.id);
+
+            await updateDoc(userRef, {
+                referralCount: increment(1),
+                referredUsers: arrayUnion(referredUserName) // Add the referred user's name
+            });
+        } else {
+            console.error("Referral user does not exist.");
+        }
+    } catch (error) {
+        console.error("Error logging referral click:", error);
+    }
+};
+
+// Webhook route for Telegram bot
 app.post('/webhook', async (req, res) => {
     const { message } = req.body;
 
@@ -55,13 +95,13 @@ app.post('/webhook', async (req, res) => {
             let userId;
             const existingUser = await checkUserExists(username);
             if (existingUser) {
-                userId = existingUser.userId;
+                userId = existingUser.id;
             } else {
                 userId = uuidv4();
-                await createUser(userId, username);
+                await createUser(username);
 
                 if (referralCode) {
-                    await updateReferralCount(referralCode);
+                    await logReferralClick(referralCode, username);
                 }
             }
 
@@ -75,7 +115,6 @@ app.post('/webhook', async (req, res) => {
                             text: "Open CrownCoin App",
                             web_app: { url: `https://crowncoinbyton.vercel.app/?initData=${encodeURIComponent(initData)}` }
                         }
-                    
                     ]
                 ]
             };
@@ -92,22 +131,6 @@ app.post('/webhook', async (req, res) => {
     }
 
     res.sendStatus(200);
-});
-
-// Referral tracking route
-app.get('/referral', async (req, res) => {
-    const referralCode = req.query.code;
-
-    if (referralCode) {
-        try {
-            await updateReferralCount(referralCode);
-            res.send({ message: "Referral tracked successfully!" });
-        } catch (error) {
-            res.status(500).send({ message: "Server error." });
-        }
-    } else {
-        res.status(400).send({ message: "Invalid referral code." });
-    }
 });
 
 // Start server

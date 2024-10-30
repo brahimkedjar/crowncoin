@@ -1,14 +1,13 @@
 const { db } = require("./firebase");
-const { collection, addDoc, doc, getDoc, updateDoc, arrayUnion, query, where, getDocs, onSnapshot } = require("firebase/firestore");
+const { collection, addDoc, doc, getDoc, updateDoc, arrayUnion, query, where, increment, getDocs, onSnapshot } = require("firebase/firestore");
 
 const usersCollection = collection(db, "users");
 
-// Helper function to generate a unique referral code
 const generateReferralCode = () => {
-    return Math.random().toString(36).substring(2, 10); // generates a random 8-character code
+    return Math.random().toString(36).substring(2, 10);
 };
 
-// Check if a user exists by username
+// Check if user exists by username
 const checkUserExists = async (username) => {
     try {
         const userQuery = query(usersCollection, where("username", "==", username));
@@ -25,20 +24,20 @@ const checkUserExists = async (username) => {
     }
 };
 
-// Create a user if they don't already exist
+// Create new user and initialize with referral code
 const createUser = async (username) => {
     try {
         const existingUser = await checkUserExists(username);
         if (existingUser) {
             return existingUser;
         }
-        
-        const referralCode = generateReferralCode(); // Generate unique referral code
-        const newUser = await addDoc(usersCollection, { 
-            username, 
-            referralCode, 
-            referralCount: 0, 
-            referredUsers: [] // Array to store users who used this user's referral code
+
+        const referralCode = generateReferralCode();
+        const newUser = await addDoc(usersCollection, {
+            username,
+            referralCode,
+            referralCount: 0,
+            referredUsers: [] 
         });
         return { id: newUser.id, username, referralCode, referralCount: 0, referredUsers: [] };
     } catch (error) {
@@ -48,8 +47,7 @@ const createUser = async (username) => {
 };
 
 
-
-// Log a referral click and update count and referred users
+// Log referral click and increment count
 const logReferralClick = async (referralCode, referredUserName) => {
     try {
         const userQuery = query(usersCollection, where("referralCode", "==", referralCode));
@@ -60,17 +58,17 @@ const logReferralClick = async (referralCode, referredUserName) => {
             const userRef = doc(db, "users", userDoc.id);
 
             await updateDoc(userRef, {
-                referralCount: (userDoc.data().referralCount || 0) + 1,
-                referredUsers: arrayUnion(referredUserName) // Add the referred user's name
+                referralCount: increment(1),
+                referredUsers: arrayUnion(referredUserName)
             });
+            console.log(`Referral count incremented for user with code: ${referralCode}`);
         } else {
-            console.error("Referral user does not exist.");
+            console.error("Referral user not found.");
         }
     } catch (error) {
         console.error("Error logging referral click:", error);
     }
 };
-
 // Function to get referrals for a specific user
 const getReferrals = async (userId) => {
     try {

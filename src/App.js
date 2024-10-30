@@ -100,14 +100,14 @@ const App = () => {
                             <div className="tasks-section modern-section">
                                 <h3>Earn Rewards by Completing These Tasks:</h3>
                                 <ul className="task-list">
-                                    <li>
-                                        <a href="https://www.instagram.com/crowncoin_by_ton?igsh=OHFvbDk2a3N5cW03" target="_blank" rel="noopener noreferrer" className="task-button">
-                                            👍 Like Our Instagram Page
+                                <li>
+                                        <a href="https://t.me/crowncointon" target="_blank" rel="noopener noreferrer" className="task-button">
+                                            🚀 Join Our Telegram Group
                                         </a>
                                     </li>
                                     <li>
-                                        <a href="https://t.me/crowncointon" target="_blank" rel="noopener noreferrer" className="task-button">
-                                            🚀 Join Our Telegram Group
+                                        <a href="https://www.instagram.com/crowncoin_by_ton?igsh=OHFvbDk2a3N5cW03" target="_blank" rel="noopener noreferrer" className="task-button">
+                                            👍 Like Our Instagram Page
                                         </a>
                                     </li>
                                     <li>
