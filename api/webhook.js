@@ -120,7 +120,7 @@ app.post('/webhook', async (req, res) => {
 
             // Send response with welcome message and referral link
             const responseText = `Welcome ${username}! Click the button below to open the CrownCoin app.`;
-            const initData = JSON.stringify({ user: { id: user.id, username } });
+            const initData = JSON.stringify({ user: { id: user.id, username,refferal:user.referralCode } });
 
             const replyMarkup = {
                 inline_keyboard: [
