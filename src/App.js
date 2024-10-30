@@ -130,10 +130,10 @@ const App = () => {
                                     <div className="referral-section modern-section">
                                         <h3>Your Referral Link</h3>
                                         <p>Share this link to refer others:</p>
-                                        <input 
-                                            type="text" 
-                                            value={referralLink} 
-                                            readOnly 
+                                        <input
+                                            type="text"
+                                            value={referralLink}
+                                            readOnly
                                             className="referral-input"
                                         />
                                         <button onClick={handleCopyReferralLink} className="copy-referral-button">
@@ -153,25 +153,31 @@ const App = () => {
                 </>
             ) : (
                 <div className="leaderboard">
-                    <h2 className="leaderboard-title">Leaderboard</h2>
-                    <div className="prize-announcement">
+    <h2 className="leaderboard-title">
+        <i className="fas fa-trophy"></i> Leaderboard
+    </h2>
+    <div className="prize-announcement">
         <p>🏆 The first three persons will win a prize of <strong>$1000! 🏆</strong></p>
-    </div>                    {leaderboardData.length > 0 ? (
-                        <ul className="leaderboard-list">
-                            {leaderboardData.map((user, index) => (
-                                <li key={index} className={`leaderboard-item ${index < 3 ? 'top-three' : ''}`}>
-                                    <span className="leaderboard-rank">
-                                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}.
-                                    </span>
-                                    <span className="leaderboard-username">{user.username}</span>
-                                    <span className="leaderboard-referrals">{user.referralCount} referrals</span>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <div className="no-data-message">No leaderboard data available.</div>
-                    )}
-                </div>
+    </div>
+    {/* Modern line separator */}
+    <div className="separator"></div>
+    {leaderboardData.length > 0 ? (
+        <ul className="leaderboard-list">
+            {leaderboardData.map((user, index) => (
+                <li key={index} className={`leaderboard-item ${index < 3 ? 'top-three' : ''}`}>
+                    <span className="leaderboard-rank" style={{ color: 'black' }}>
+                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}.
+                    </span>
+                    <span className="leaderboard-username">{user.username}</span>
+                    <span className="leaderboard-referrals">{user.referralCount} referrals</span>
+                </li>
+            ))}
+        </ul>
+    ) : (
+        <div className="no-data-message">No leaderboard data available.</div>
+    )}
+</div>
+
             )}
             <BottomNav onNavigate={handleNavigate} />
         </div>
