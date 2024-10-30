@@ -67,7 +67,7 @@ const createUser = async (username) => {
 const handleReferralAccess = async (referralCode, newUserId) => {
     try {
         // Find the user who owns the referral code
-        const referrerQuery = query(usersCollection, where("referralCode", "==", newUserId));
+        const referrerQuery = query(usersCollection, where("referralCode", "==", referralCode));
         const referrerSnapshot = await getDocs(referrerQuery);
 
         if (!referrerSnapshot.empty) {
