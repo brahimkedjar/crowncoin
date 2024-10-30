@@ -82,31 +82,29 @@ const logReferralClick = async (referralCode, referredUserName) => {
     }
 };
 
-// Webhook route for Telegram bot
 app.post('/webhook', async (req, res) => {
     const { message } = req.body;
 
     if (message && message.text.startsWith('/start')) {
         const chatId = message.chat.id;
         const username = message.from.username || "User";
-        const referralCode = message.text.split(' ')[1] || ''; 
+        const referralCode = message.text.split(' ')[1] || ''; // Retrieve referral code if provided
 
         try {
-            let userId;
-            const existingUser = await checkUserExists(username);
-            if (existingUser) {
-                userId = existingUser.id;
-            } else {
-                userId = uuidv4();
-                await createUser(username);
-
-                if (referralCode) {
-                    await logReferralClick(referralCode, username);
-                }
+            // Check if user exists or create new one
+            let user = await checkUserExists(username);
+            if (!user) {
+                user = await createUser(username); // Generate a new user and referral code
             }
 
+            // Log referral if a valid code is provided and isn't self-referral
+            if (referralCode && referralCode !== user.referralCode) {
+                await logReferralClick(referralCode, username);
+            }
+
+            // Send response with welcome message and referral link
             const responseText = `Welcome ${username}! Click the button below to open the CrownCoin app.`;
-            const initData = JSON.stringify({ user: { id: userId, username } });
+            const initData = JSON.stringify({ user: { id: user.id, username } });
 
             const replyMarkup = {
                 inline_keyboard: [
@@ -132,6 +130,7 @@ app.post('/webhook', async (req, res) => {
 
     res.sendStatus(200);
 });
+
 
 // Start server
 app.listen(port, () => {
