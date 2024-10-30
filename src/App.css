@@ -145,3 +145,94 @@ body, html {
   margin-top: 20px;
   text-align: center;
 }
+
+.navbar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.nav-button {
+  background-color: #4CAF50; /* Green background */
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  margin: 0 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.nav-button:hover {
+  background-color: #45a049; /* Darker green on hover */
+  transform: scale(1.05);
+}
+
+.nav-button.active {
+  background-color: #3e8e41; /* Active button color */
+}
+
+.dashboard, .leaderboard {
+  text-align: center;
+}
+
+.leaderboard-title {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 auto;
+}
+
+.leaderboard-table th, .leaderboard-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+}
+
+.leaderboard-table th {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.leaderboard-table tr:hover {
+  background-color: #f1f1f1;
+}
+
+.loading-message, .error-message {
+  color: red;
+  font-size: 18px;
+}
+
+.copy-referral-button {
+  background-color: #008CBA; /* Blue background */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.copy-referral-button:hover {
+  background-color: #007B9E; /* Darker blue on hover */
+}
+
+.referral-input {
+  padding: 10px;
+  width: calc(100% - 20px);
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.modern-section {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin: 10px 0;
+}

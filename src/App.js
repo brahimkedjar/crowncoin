@@ -5,6 +5,7 @@ import {
     getUser,
     updateReferralCount,
     getUserCount,
+    getLeaderboard, // Ensure this function exists in your database module
 } from './database';
 import './App.css';
 
@@ -14,6 +15,8 @@ const App = () => {
     const [walletAddress, setWalletAddress] = useState('');
     const [referralLink, setReferralLink] = useState('');
     const [remainingSpots, setRemainingSpots] = useState(1000000);
+    const [currentPage, setCurrentPage] = useState('home');
+    const [leaderboardData, setLeaderboardData] = useState([]);
 
     useEffect(() => {
         const unsubscribeUserCount = getUserCount((userCount) => {
@@ -35,7 +38,6 @@ const App = () => {
 
                         // Check for a referral code in the URL
                         if (parsedData.referralCode) {
-                            // Increment referral count for the user with this referral code
                             await updateReferralCount(parsedData.referralCode, userId);
                         }
 
@@ -62,6 +64,18 @@ const App = () => {
         alert('Referral link copied to clipboard!');
     };
 
+    const fetchLeaderboard = async () => {
+        const data = await getLeaderboard(); // Fetch the leaderboard data
+        setLeaderboardData(data);
+    };
+
+    const handleNavClick = (page) => {
+        setCurrentPage(page);
+        if (page === 'leaderboard') {
+            fetchLeaderboard();
+        }
+    };
+
     return (
         <div className="app-container">
             <header className="app-header">
@@ -75,60 +89,87 @@ const App = () => {
                 </div>
             </header>
 
+            <nav className="navbar">
+                <button onClick={() => handleNavClick('home')} className={`nav-button ${currentPage === 'home' ? 'active' : ''}`}>Home</button>
+                <button onClick={() => handleNavClick('leaderboard')} className={`nav-button ${currentPage === 'leaderboard' ? 'active' : ''}`}>Leaderboard</button>
+            </nav>
+
             {error ? (
                 <div className="error-message">
                     <p>{error}</p>
                 </div>
             ) : (
-                userData ? (
-                    <div className="dashboard">
-                        <h2 className="dashboard-title">Welcome, <strong>{userData.username}</strong></h2>
-                        <div className="dashboard-content">
-                            <div className="airdrop-info modern-section">
-                                <h3>Airdrop & TGE Details</h3>
-                                <p>To be eligible for rewards, please complete the tasks below:</p>
-                            </div>
-                            <div className="tasks-section modern-section">
-                                <h3>Earn Rewards by Completing These Tasks:</h3>
-                                <ul className="task-list">
-                                <li>
-                                        <a href="https://t.me/crowncointon" target="_blank" rel="noopener noreferrer" className="task-button">
-                                            🚀 Join Our Telegram Group
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="https://www.instagram.com/crowncoin_by_ton?igsh=OHFvbDk2a3N5cW03" target="_blank" rel="noopener noreferrer" className="task-button">
-                                            👍 Like Our Instagram Page
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="https://example.com/refer-friends" target="_blank" rel="noopener noreferrer" className="task-button">
-                                            🤝 Refer Friends to CrownCoin
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div className="referral-section modern-section">
-                                <h3>Your Referral Link</h3>
-                                <p>Share this link to refer others:</p>
-                                <input 
-                                    type="text" 
-                                    value={referralLink} 
-                                    readOnly 
-                                    className="referral-input"
-                                />
-                                <button onClick={handleCopyReferralLink} className="copy-referral-button">
-                                    Copy Referral Link
-                                </button>
-                            </div>
-                            <div className="referral-count-section modern-section">
-                                <h3>Your Referral Count</h3>
-                                <p>You have referred: {userData.referralCount || 0} users</p>
+                currentPage === 'home' ? (
+                    userData ? (
+                        <div className="dashboard">
+                            <h2 className="dashboard-title">Welcome, <strong>{userData.username}</strong></h2>
+                            <div className="dashboard-content">
+                                <div className="airdrop-info modern-section">
+                                    <h3>Airdrop & TGE Details</h3>
+                                    <p>To be eligible for rewards, please complete the tasks below:</p>
+                                </div>
+                                <div className="tasks-section modern-section">
+                                    <h3>Earn Rewards by Completing These Tasks:</h3>
+                                    <ul className="task-list">
+                                        <li>
+                                            <a href="https://t.me/crowncointon" target="_blank" rel="noopener noreferrer" className="task-button">
+                                                🚀 Join Our Telegram Group
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="https://www.instagram.com/crowncoin_by_ton?igsh=OHFvbDk2a3N5cW03" target="_blank" rel="noopener noreferrer" className="task-button">
+                                                👍 Like Our Instagram Page
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="https://example.com/refer-friends" target="_blank" rel="noopener noreferrer" className="task-button">
+                                                🤝 Refer Friends to CrownCoin
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div className="referral-section modern-section">
+                                    <h3>Your Referral Link</h3>
+                                    <p>Share this link to refer others:</p>
+                                    <input 
+                                        type="text" 
+                                        value={referralLink} 
+                                        readOnly 
+                                        className="referral-input"
+                                    />
+                                    <button onClick={handleCopyReferralLink} className="copy-referral-button">
+                                        Copy Referral Link
+                                    </button>
+                                </div>
+                                <div className="referral-count-section modern-section">
+                                    <h3>Your Referral Count</h3>
+                                    <p>You have referred: {userData.referralCount || 0} users</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="loading-message">Loading user data...</div>
+                    )
                 ) : (
-                    <div className="loading-message">Loading user data...</div>
+                    <div className="leaderboard">
+                        <h2 className="leaderboard-title">Leaderboard</h2>
+                        <table className="leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Referrals</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {leaderboardData.map((user) => (
+                                    <tr key={user.id}>
+                                        <td>{user.username}</td>
+                                        <td>{user.referralCount}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )
             )}
         </div>

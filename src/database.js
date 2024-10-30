@@ -1,10 +1,7 @@
 const { db } = require("./firebase");
-const { collection, addDoc, doc, getDoc, updateDoc, arrayUnion, query, where, increment, getDocs, onSnapshot } = require("firebase/firestore");
+const { collection, addDoc, doc, orderBy, limit, updateDoc, arrayUnion, query, where, increment, getDocs, onSnapshot } = require("firebase/firestore");
 
 const usersCollection = collection(db, "users");
-const generateReferralCode = () => {
-    return Math.random().toString(36).substring(2, 10);
-};
 
 const checkUserExists = async (username, userId) => {
     try {
@@ -89,8 +86,30 @@ const getUserCount = (callback) => {
     });
     return unsubscribe; // Return unsubscribe function for cleanup
 };
+// Get the leaderboard of users sorted by referralCount
+const getLeaderboard = async (limitCount = 10) => {
+    try {
+        // Create a query to get users sorted by referralCount in descending order
+        const leaderboardQuery = query(
+            usersCollection,
+            orderBy("referralCount", "desc"), // Sort by referral count
+            limit(limitCount) // Limit the number of results
+        );
 
+        const querySnapshot = await getDocs(leaderboardQuery);
+        const leaderboard = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
+        return leaderboard; // Return the leaderboard data
+    } catch (error) {
+        console.error("Error retrieving leaderboard:", error);
+        throw error;
+    }
+};
 module.exports = {
+    getLeaderboard,
     checkUserExists,
     createUser,
     getUser,
