@@ -57,18 +57,16 @@ const App = () => {
         return () => unsubscribeUserCount();
     }, []);
 
-    const handleReferralClick = async (referralCode) => {
+    const handleReferralClick = async () => {
+        if (!referralCode) return; // Only proceed if a code is present
         const userId = userData.id;
         await logReferralClick(referralCode, userId);
         window.open(`https://t.me/CROWNCOINOFFICIAL_bot?start=${referralCode}`, '_blank');
+        setReferralCode(''); // Clear input after click
     };
-
-    const handleManualWalletSubmit = () => {
-        if (manualWalletAddress) {
-            setWalletAddress(manualWalletAddress);
-            localStorage.setItem('walletAddress', manualWalletAddress);
-            setManualWalletAddress('');
-        }
+    const handleCopyReferralLink = () => {
+        navigator.clipboard.writeText(referralLink);
+        alert('Referral link copied to clipboard!');
     };
 
     return (
@@ -127,19 +125,23 @@ const App = () => {
                                     readOnly 
                                     className="referral-input"
                                 />
-                                <button onClick={() => navigator.clipboard.writeText(referralLink)} className="copy-referral-button">
-                                    Copy Referral Link
-                                </button>
+                               <button onClick={handleCopyReferralLink} className="copy-referral-button">
+    Copy Referral Link
+</button>
                             </div>
 
                             <div className="referral-click-section modern-section">
                                 <h3>Log a Referral Click</h3>
                                 <input 
-                                    type="text" 
-                                    placeholder="Enter Referral Code" 
-                                    onChange={(e) => handleReferralClick(e.target.value)} 
-                                    className="referral-code-input" 
-                                />
+    type="text" 
+    placeholder="Enter Referral Code" 
+    value={referralCode}
+    onChange={(e) => setReferralCode(e.target.value)} 
+    className="referral-code-input" 
+/>
+<button onClick={handleReferralClick} className="log-referral-button">
+    Log Referral Click
+</button>
                             </div>
 
                             <div className="referral-count-section modern-section">

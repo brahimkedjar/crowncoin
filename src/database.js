@@ -24,7 +24,6 @@ const checkUserExists = async (username) => {
     }
 };
 
-// Create new user and initialize with referral code
 const createUser = async (username) => {
     try {
         const existingUser = await checkUserExists(username);
@@ -32,12 +31,12 @@ const createUser = async (username) => {
             return existingUser;
         }
 
-        const referralCode = generateReferralCode();
-        const newUser = await addDoc(usersCollection, {
-            username,
-            referralCode,
-            referralCount: 0,
-            referredUsers: [] 
+        const referralCode = generateReferralCode(); // Generate unique referral code
+        const newUser = await addDoc(usersCollection, { 
+            username, 
+            referralCode,  // Make sure this field is included
+            referralCount: 0, 
+            referredUsers: [] // Array to store users who used this user's referral code
         });
         return { id: newUser.id, username, referralCode, referralCount: 0, referredUsers: [] };
     } catch (error) {
@@ -45,7 +44,6 @@ const createUser = async (username) => {
         throw error;
     }
 };
-
 
 // Log referral click and increment count
 const logReferralClick = async (referralCode, referredUserName) => {

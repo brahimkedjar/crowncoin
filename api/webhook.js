@@ -99,6 +99,7 @@ app.post('/webhook', async (req, res) => {
 
             // Log referral if a valid code is provided and isn't self-referral
             if (referralCode && referralCode !== user.referralCode) {
+                console.log(`Logging referral: ${referralCode} for user: ${username}`);
                 await logReferralClick(referralCode, username);
             }
 
