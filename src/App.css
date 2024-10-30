@@ -152,7 +152,7 @@ body, html {
   background-color: #f9f9f9;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  margin: 20px;
+  margin: 20px auto; /* Center the leaderboard */
 }
 
 .leaderboard-title {
@@ -161,7 +161,6 @@ body, html {
   margin-bottom: 15px;
   color: #333;
 }
-
 
 .leaderboard-list {
   list-style-type: none;
@@ -174,6 +173,7 @@ body, html {
   padding: 15px;
   border-bottom: 1px solid #ddd;
   transition: background 0.3s ease;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
 }
 
 .leaderboard-item:hover {
@@ -192,11 +192,13 @@ body, html {
   margin-left: 10px;
   font-size: 18px;
   color: #007bff;
+  white-space: nowrap; /* Prevent text from wrapping */
 }
 
 .leaderboard-referrals {
   font-size: 18px;
   color: #555;
+  margin-left: 10px; /* Space between username and referrals */
 }
 
 .top-three {
@@ -237,4 +239,19 @@ body, html {
   color: #ff6600; /* Highlight the prize amount with a different color */
 }
 
-
+/* Responsive styles */
+@media (max-width: 458px) {
+  .leaderboard-item {
+    flex-direction: column; /* Stack items on small screens */
+    align-items: flex-start; /* Align items to the start */
+  }
+  
+  .leaderboard-username,
+  .leaderboard-referrals {
+    margin-left: 0; /* Reset margin on small screens */
+  }
+  
+  .leaderboard-referrals {
+    margin-top: 5px; /* Add margin for better spacing */
+  }
+}
