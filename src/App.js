@@ -9,6 +9,7 @@ import {
 } from './database';
 import './App.css';
 import BottomNav from './BottomNav';
+import TaskItem from './TaskItem';
 
 const App = () => {
     const [userData, setUserData] = useState(null);
@@ -108,25 +109,14 @@ const App = () => {
                                         <p>To be eligible for rewards, please complete the tasks below:</p>
                                     </div>
                                     <div className="tasks-section modern-section">
-                                        <h3>Earn Rewards by Completing These Tasks:</h3>
-                                        <ul className="task-list">
-                                            <li>
-                                                <a href="https://t.me/crowncointon" target="_blank" rel="noopener noreferrer" className="task-button">
-                                                    🚀 Join Our Telegram Group
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="https://www.instagram.com/crowncoin_by_ton?igsh=OHFvbDk2a3N5cW03" target="_blank" rel="noopener noreferrer" className="task-button">
-                                                    👍 Like Our Instagram Page
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="https://example.com/refer-friends" target="_blank" rel="noopener noreferrer" className="task-button">
-                                                    🤝 Refer Friends to CrownCoin
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
+    <h3>Earn Rewards by Completing These Tasks:</h3>
+    <ul className="task-list">
+        <TaskItem label="🚀 Join Our Telegram Group" link="https://t.me/crowncointon" />
+        <TaskItem label="👍 Like Our Instagram Page" link="https://www.instagram.com/crowncoin_by_ton?igsh=OHFvbDk2a3N5cW03" />
+        <TaskItem label="🐾🐾 Join Paws Our New Partner" link="https://t.me/PAWSOG_bot/PAWS?startapp=BmhA7FaN" />
+        <TaskItem label="👀👀 Join PinEye Our New Partner" link="https://t.me/PinEye_Bot/pineye?startapp=r_6754210573" />
+    </ul>
+</div>
                                     <div className="referral-section modern-section">
                                         <h3>Your Referral Link</h3>
                                         <p>Share this link to refer others:</p>

@@ -1,0 +1,33 @@
+.task-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    font-size: 1rem;
+}
+
+.task-link {
+    color: #4a90e2;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.task-status-icon {
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+}
+
+.loading-icon {
+    color: #ff9800;
+    animation: spin 1s linear infinite;
+}
+
+.done-icon {
+    color: #4caf50;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
