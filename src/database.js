@@ -1,5 +1,5 @@
 const { db } = require("./firebase");
-const { collection, addDoc, doc, getDoc, updateDoc, arrayUnion, query, where, getDocs } = require("firebase/firestore");
+const { collection, addDoc, doc, getDoc, updateDoc, arrayUnion, query, where, getDocs, onSnapshot } = require("firebase/firestore");
 
 const usersCollection = collection(db, "users");
 
@@ -47,21 +47,7 @@ const createUser = async (username) => {
     }
 };
 
-// Get a user by ID
-const getUser = async (userId) => {
-    try {
-        const userRef = doc(db, "users", userId);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-            return { id: userId, ...userSnap.data() };
-        } else {
-            throw new Error("User not found.");
-        }
-    } catch (error) {
-        console.error("Error fetching user:", error);
-        throw error;
-    }
-};
+
 
 // Log a referral click and update count and referred users
 const logReferralClick = async (referralCode, referredUserName) => {
@@ -106,4 +92,30 @@ const getReferrals = async (userId) => {
     }
 };
 
-module.exports = { checkUserExists, createUser, getUser, getReferrals, logReferralClick };
+const getUserCount = (callback) => {
+    try {
+        return onSnapshot(usersCollection, (snapshot) => {
+            callback(snapshot.size);
+        });
+    } catch (error) {
+        console.error("Error getting user count:", error);
+    }
+};
+
+// Get real-time updates for a specific user by ID
+const getUser = (userId, callback) => {
+    try {
+        const userRef = doc(db, "users", userId);
+        return onSnapshot(userRef, (docSnap) => {
+            if (docSnap.exists()) {
+                callback({ id: userId, ...docSnap.data() });
+            } else {
+                console.error("User not found.");
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching user:", error);
+    }
+};
+
+module.exports = { checkUserExists, createUser, getUser, getReferrals, logReferralClick, getUserCount };

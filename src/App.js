@@ -6,6 +6,7 @@ import {
     updateReferralCount,
     getReferrals,
     logReferralClick,
+    getUserCount,
 } from './database';
 import './App.css';
 
@@ -15,8 +16,14 @@ const App = () => {
     const [walletAddress, setWalletAddress] = useState('');
     const [manualWalletAddress, setManualWalletAddress] = useState('');
     const [referralLink, setReferralLink] = useState('');
+    const [remainingSpots, setRemainingSpots] = useState(1000000);
 
     useEffect(() => {
+        // Listen for real-time updates for the user count
+        const unsubscribeUserCount = getUserCount((userCount) => {
+            setRemainingSpots(1000000 - userCount);
+        });
+
         const initApp = async () => {
             try {
                 if (window.Telegram && window.Telegram.WebApp) {
@@ -24,11 +31,15 @@ const App = () => {
                     const initData = urlParams.get('initData');
                     if (initData) {
                         const parsedData = JSON.parse(decodeURIComponent(initData));
+                        const userId = parsedData.user.id;
                         setUserData(parsedData.user);
 
-                        const referralCode = parsedData.user.id; // Use user ID as referral code
                         const botUsername = 'CROWNCOINOFFICIAL_bot';
-                        setReferralLink(`https://t.me/${botUsername}?start=${referralCode}`);
+                        setReferralLink(`https://t.me/${botUsername}?start=${userId}`);
+
+                        // Listen for real-time updates for the user data
+                        const unsubscribeUserData = getUser(userId, (user) => setUserData(user));
+                        return () => unsubscribeUserData();
                     } else {
                         setError("No initData found in the URL.");
                     }
@@ -36,11 +47,14 @@ const App = () => {
                     setError("Telegram Web App not initialized.");
                 }
             } catch (error) {
-                setError("An error occurred while initializing the Telegram Web App.");
+                setError("An error occurred while initializing the app.");
             }
         };
 
         initApp();
+        
+        // Clean up listeners when the component unmounts
+        return () => unsubscribeUserCount();
     }, []);
 
     const handleReferralClick = async (referralCode) => {
@@ -64,6 +78,10 @@ const App = () => {
                 <h1 className="app-title">CrownCoin</h1>
                 <p className="sub-text">Supported by TON, soon listed on major exchanges.</p>
                 <p className="eligibility-message">🚀 Only the first 1 million users will be eligible for the airdrop! Join now!</p>
+                <div className="countdown">
+                    <h2>Remaining Spots:</h2>
+                    <p className="countdown-number">{remainingSpots.toLocaleString()}</p>
+                </div>
             </header>
 
             {error ? (
@@ -126,7 +144,7 @@ const App = () => {
 
                             <div className="referral-count-section modern-section">
                                 <h3>Your Referral Count</h3>
-                                <p>You have referred: {userData.referrals} users</p>
+                                <p>You have referred: {userData.referrals || 0} users</p>
                             </div>
                         </div>
                     </div>
