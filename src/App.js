@@ -23,9 +23,38 @@ const App = () => {
         const unsubscribeUserCount = getUserCount((userCount) => {
             setRemainingSpots(1000000 - userCount);
         });
-
+            
+        
         const initApp = async () => {
-            // ... existing initApp logic
+            try {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const initData = urlParams.get('initData');
+                    if (initData) {
+                        const parsedData = JSON.parse(decodeURIComponent(initData));
+                        const userId = parsedData.user.id;
+                        setUserData(parsedData.user);
+
+                        const botUsername = 'CROWNCOINOFFICIAL_bot';
+                        setReferralLink(`https://t.me/${botUsername}?start=${parsedData.user.refferal}`);
+
+                        // Check for a referral code in the URL
+                        if (parsedData.referralCode) {
+                            // Increment referral count for the user with this referral code
+                            await updateReferralCount(parsedData.referralCode, userId);
+                        }
+
+                        const unsubscribeUserData = getUser(userId, (user) => setUserData(user));
+                        return () => unsubscribeUserData();
+                    } else {
+                        setError("No initData found in the URL.");
+                    }
+                } else {
+                    setError("Telegram Web App not initialized.");
+                }
+            } catch (error) {
+                setError("An error occurred while initializing the app.");
+            }
 
             if (view === 'leaderboard') {
                 const leaderboard = await getLeaderboard(); // Fetch leaderboard data
