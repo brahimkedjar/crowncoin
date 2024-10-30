@@ -7,10 +7,9 @@ const generateReferralCode = () => {
     return Math.random().toString(36).substring(2, 10);
 };
 
-// Check if user exists by username
-const checkUserExists = async (username) => {
+const checkUserExists = async (username, userId) => {
     try {
-        const userQuery = query(usersCollection, where("username", "==", username));
+        const userQuery = query(usersCollection, where("username", "==", username), where("userId", "==", userId));
         const querySnapshot = await getDocs(userQuery);
         
         if (!querySnapshot.empty) {
@@ -24,27 +23,29 @@ const checkUserExists = async (username) => {
     }
 };
 
-const createUser = async (username) => {
+// Create a user if they don't already exist
+const createUser = async (username, userId) => {
     try {
-        const existingUser = await checkUserExists(username);
+        const existingUser = await checkUserExists(username, userId);
         if (existingUser) {
-            return existingUser;
+            console.log(`User already exists: ${existingUser.username}`);
+            return existingUser; // Return existing user
         }
-
+        
         const referralCode = generateReferralCode(); // Generate unique referral code
         const newUser = await addDoc(usersCollection, { 
             username, 
-            referralCode,  // Make sure this field is included
+            userId, // Save userId here
+            referralCode, 
             referralCount: 0, 
             referredUsers: [] // Array to store users who used this user's referral code
         });
-        return { id: newUser.id, username, referralCode, referralCount: 0, referredUsers: [] };
+        return { id: newUser.id, username, userId, referralCode, referralCount: 0, referredUsers: [] };
     } catch (error) {
         console.error("Error creating user:", error);
         throw error;
     }
 };
-
 // Log referral click and increment count
 const logReferralClick = async (referralCode, referredUserName) => {
     try {
