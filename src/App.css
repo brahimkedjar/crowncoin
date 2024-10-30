@@ -146,93 +146,94 @@ body, html {
   text-align: center;
 }
 
-.navbar {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-
-.nav-button {
-  background-color: #4CAF50; /* Green background */
-  border: none;
-  color: white;
-  padding: 10px 20px;
-  margin: 0 10px;
-  cursor: pointer;
-  border-radius: 5px;
-  font-size: 16px;
-  transition: background-color 0.3s, transform 0.2s;
-}
-
-.nav-button:hover {
-  background-color: #45a049; /* Darker green on hover */
-  transform: scale(1.05);
-}
-
-.nav-button.active {
-  background-color: #3e8e41; /* Active button color */
-}
-
-.dashboard, .leaderboard {
-  text-align: center;
+.leaderboard {
+  min-width: 60%;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin: 20px;
 }
 
 .leaderboard-title {
+  text-align: center;
   font-size: 24px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
+  color: #333;
 }
 
-.leaderboard-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 0 auto;
+.leaderboard-list {
+  list-style-type: none;
+  padding: 0;
 }
 
-.leaderboard-table th, .leaderboard-table td {
-  padding: 12px;
-  border: 1px solid #ddd;
+.leaderboard-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px;
+  border-bottom: 1px solid #ddd;
+  transition: background 0.3s ease;
 }
 
-.leaderboard-table th {
-  background-color: #4CAF50;
-  color: white;
+.leaderboard-item:hover {
+  background-color: #e9f1ff;
 }
 
-.leaderboard-table tr:hover {
-  background-color: #f1f1f1;
+.leaderboard-rank {
+  font-size: 20px;
+  font-weight: bold;
+  width: 40px;
+  text-align: center;
 }
 
-.loading-message, .error-message {
-  color: red;
+.leaderboard-username {
+  flex-grow: 1;
+  margin-left: 10px;
   font-size: 18px;
+  color: #007bff;
 }
 
-.copy-referral-button {
-  background-color: #008CBA; /* Blue background */
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
+.leaderboard-referrals {
+  font-size: 18px;
+  color: #555;
 }
 
-.copy-referral-button:hover {
-  background-color: #007B9E; /* Darker blue on hover */
+.top-three {
+  font-weight: bold;
+  color: #ffcc00; /* Default color for top three */
 }
 
-.referral-input {
-  padding: 10px;
-  width: calc(100% - 20px);
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+.top-three:nth-child(2) {
+  color: #c0c0c0; /* Silver for 2nd */
 }
 
-.modern-section {
-  background-color: #fff;
+.top-three:nth-child(3) {
+  color: #cd7f32; /* Bronze for 3rd */
+}
+
+.prize-announcement {
+  background-color: #f0e68c; /* Light yellow background */
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  margin: 10px 0;
+  padding: 15px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 20px; /* Larger text size */
+  color: #333;
+  font-weight: bold; /* Make text bold */
+  position: relative; /* For positioning */
 }
+
+.prize-announcement::before {
+  content: '🏆'; /* Trophy emoji as an icon */
+  font-size: 28px; /* Larger size for the emoji */
+  position: absolute;
+  left: 10px; /* Position it to the left */
+  top: 50%;
+  transform: translateY(-50%); /* Center vertically */
+}
+
+.prize-announcement strong {
+  color: #ff6600; /* Highlight the prize amount with a different color */
+}
+
+

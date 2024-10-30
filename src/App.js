@@ -5,9 +5,10 @@ import {
     getUser,
     updateReferralCount,
     getUserCount,
-    getLeaderboard, // Ensure this function exists in your database module
+    getLeaderboard, // Assuming you have this function to get leaderboard data
 } from './database';
 import './App.css';
+import BottomNav from './BottomNav'; // Import the BottomNav component
 
 const App = () => {
     const [userData, setUserData] = useState(null);
@@ -15,8 +16,8 @@ const App = () => {
     const [walletAddress, setWalletAddress] = useState('');
     const [referralLink, setReferralLink] = useState('');
     const [remainingSpots, setRemainingSpots] = useState(1000000);
-    const [currentPage, setCurrentPage] = useState('home');
-    const [leaderboardData, setLeaderboardData] = useState([]);
+    const [view, setView] = useState('home'); // State to manage the current view
+    const [leaderboardData, setLeaderboardData] = useState([]); // State for leaderboard data
 
     useEffect(() => {
         const unsubscribeUserCount = getUserCount((userCount) => {
@@ -24,61 +25,33 @@ const App = () => {
         });
 
         const initApp = async () => {
-            try {
-                if (window.Telegram && window.Telegram.WebApp) {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const initData = urlParams.get('initData');
-                    if (initData) {
-                        const parsedData = JSON.parse(decodeURIComponent(initData));
-                        const userId = parsedData.user.id;
-                        setUserData(parsedData.user);
+            // ... existing initApp logic
 
-                        const botUsername = 'CROWNCOINOFFICIAL_bot';
-                        setReferralLink(`https://t.me/${botUsername}?start=${parsedData.user.refferal}`);
-
-                        // Check for a referral code in the URL
-                        if (parsedData.referralCode) {
-                            await updateReferralCount(parsedData.referralCode, userId);
-                        }
-
-                        const unsubscribeUserData = getUser(userId, (user) => setUserData(user));
-                        return () => unsubscribeUserData();
-                    } else {
-                        setError("No initData found in the URL.");
-                    }
-                } else {
-                    setError("Telegram Web App not initialized.");
-                }
-            } catch (error) {
-                setError("An error occurred while initializing the app.");
+            if (view === 'leaderboard') {
+                const leaderboard = await getLeaderboard(); // Fetch leaderboard data
+                setLeaderboardData(leaderboard);
             }
         };
 
         initApp();
 
         return () => unsubscribeUserCount();
-    }, []);
+    }, [view]); // Add view as a dependency
 
     const handleCopyReferralLink = () => {
         navigator.clipboard.writeText(referralLink);
         alert('Referral link copied to clipboard!');
     };
 
-    const fetchLeaderboard = async () => {
-        const data = await getLeaderboard(); // Fetch the leaderboard data
-        setLeaderboardData(data);
-    };
-
-    const handleNavClick = (page) => {
-        setCurrentPage(page);
-        if (page === 'leaderboard') {
-            fetchLeaderboard();
-        }
+    const handleNavigate = (newView) => {
+        setView(newView);
     };
 
     return (
         <div className="app-container">
-            <header className="app-header">
+            {view === 'home' ? (
+                <>
+                   <header className="app-header">
                 <img src="https://i.ibb.co/mXgX3pm/crown1.jpg" alt="CrownCoin" className="app-logo" />
                 <h1 className="app-title">CrownCoin</h1>
                 <p className="sub-text">Supported by TON, soon listed on major exchanges.</p>
@@ -89,19 +62,13 @@ const App = () => {
                 </div>
             </header>
 
-            <nav className="navbar">
-                <button onClick={() => handleNavClick('home')} className={`nav-button ${currentPage === 'home' ? 'active' : ''}`}>Home</button>
-                <button onClick={() => handleNavClick('leaderboard')} className={`nav-button ${currentPage === 'leaderboard' ? 'active' : ''}`}>Leaderboard</button>
-            </nav>
-
-            {error ? (
-                <div className="error-message">
-                    <p>{error}</p>
-                </div>
-            ) : (
-                currentPage === 'home' ? (
-                    userData ? (
-                        <div className="dashboard">
+                    {error ? (
+                        <div className="error-message">
+                            <p>{error}</p>
+                        </div>
+                    ) : (
+                        userData ? (
+                            <div className="dashboard">
                             <h2 className="dashboard-title">Welcome, <strong>{userData.username}</strong></h2>
                             <div className="dashboard-content">
                                 <div className="airdrop-info modern-section">
@@ -111,7 +78,7 @@ const App = () => {
                                 <div className="tasks-section modern-section">
                                     <h3>Earn Rewards by Completing These Tasks:</h3>
                                     <ul className="task-list">
-                                        <li>
+                                    <li>
                                             <a href="https://t.me/crowncointon" target="_blank" rel="noopener noreferrer" className="task-button">
                                                 🚀 Join Our Telegram Group
                                             </a>
@@ -147,31 +114,35 @@ const App = () => {
                                 </div>
                             </div>
                         </div>
-                    ) : (
-                        <div className="loading-message">Loading user data...</div>
-                    )
-                ) : (
-                    <div className="leaderboard">
-                        <h2 className="leaderboard-title">Leaderboard</h2>
-                        <table className="leaderboard-table">
-                            <thead>
-                                <tr>
-                                    <th>User</th>
-                                    <th>Referrals</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {leaderboardData.map((user) => (
-                                    <tr key={user.id}>
-                                        <td>{user.username}</td>
-                                        <td>{user.referralCount}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )
+                        ) : (
+                            <div className="loading-message">Loading user data...</div>
+                        )
+                    )}
+                </>
+            ) : (
+                <div className="leaderboard">
+    <h2 className="leaderboard-title">Leaderboard</h2>
+    <div className="prize-announcement">
+        <p>The first three persons will win a prize of <strong>$1000!</strong></p>
+    </div>
+    {leaderboardData.length > 0 ? (
+        <ul className="leaderboard-list">
+            {leaderboardData.map((user, index) => (
+                <li key={index} className={`leaderboard-item ${index < 3 ? 'top-three' : ''}`}>
+                    <span className="leaderboard-rank">
+                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}.
+                    </span>
+                    <span className="leaderboard-username">{user.username}</span>
+                    <span className="leaderboard-referrals">{user.referralCount} referrals</span>
+                </li>
+            ))}
+        </ul>
+    ) : (
+        <div className="no-data-message">No leaderboard data available.</div>
+    )}
+</div>
             )}
+            <BottomNav onNavigate={handleNavigate} /> {/* Include the BottomNav component */}
         </div>
     );
 };
