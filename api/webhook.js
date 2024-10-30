@@ -1,5 +1,5 @@
 // Firebase setup and utility functions
-const { db } = require("./firebase");
+const { db } = require("../src/firebase");
 const { collection, addDoc, doc, getDoc, updateDoc, arrayUnion, query, where, getDocs, onSnapshot, increment } = require("firebase/firestore");
 const { v4: uuidv4 } = require('uuid');
 const express = require('express');
