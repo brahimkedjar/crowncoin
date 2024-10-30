@@ -17,6 +17,7 @@ const App = () => {
     const [manualWalletAddress, setManualWalletAddress] = useState('');
     const [referralLink, setReferralLink] = useState('');
     const [remainingSpots, setRemainingSpots] = useState(1000000);
+    const [referralCode, setReferralCode] = useState(''); // Add this line
 
     useEffect(() => {
         // Listen for real-time updates for the user count
