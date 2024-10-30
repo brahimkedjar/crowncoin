@@ -2,7 +2,6 @@ const { db } = require("./firebase");
 const { collection, addDoc, doc, getDoc, updateDoc, arrayUnion, query, where, increment, getDocs, onSnapshot } = require("firebase/firestore");
 
 const usersCollection = collection(db, "users");
-
 const generateReferralCode = () => {
     return Math.random().toString(36).substring(2, 10);
 };
@@ -24,31 +23,31 @@ const checkUserExists = async (username, userId) => {
 };
 
 // Create a user if they don't already exist
-const createUser = async (username, userId) => {
+const createUser = async (username, userId, referralCode) => {
     try {
         const existingUser = await checkUserExists(username, userId);
         if (existingUser) {
-            console.log(`User already exists: ${existingUser.username}`);
             return existingUser; // Return existing user
         }
         
-        const referralCode = generateReferralCode(); // Generate unique referral code
         const newUser = await addDoc(usersCollection, { 
             username, 
             userId, // Save userId here
-            referralCode, 
             referralCount: 0, 
-            referredUsers: [] // Array to store users who used this user's referral code
+            referredUsers: [], // Array to store users who used this user's referral code
+            referralCode // Store unique referral code
         });
-        return { id: newUser.id, username, userId, referralCode, referralCount: 0, referredUsers: [] };
+        return { id: newUser.id, username, userId, referralCount: 0, referredUsers: [], referralCode };
     } catch (error) {
         console.error("Error creating user:", error);
         throw error;
     }
 };
-// Log referral click and increment count
-const logReferralClick = async (referralCode, referredUserName) => {
+
+// Increment referral count and save referred user's ID
+const updateReferralCount = async (referralCode, referredUserId) => {
     try {
+        // Find the user who owns this referral code
         const userQuery = query(usersCollection, where("referralCode", "==", referralCode));
         const querySnapshot = await getDocs(userQuery);
 
@@ -57,62 +56,44 @@ const logReferralClick = async (referralCode, referredUserName) => {
             const userRef = doc(db, "users", userDoc.id);
 
             await updateDoc(userRef, {
-                referralCount: increment(1),
-                referredUsers: arrayUnion(referredUserName)
+                referralCount: increment(1), // Increment by 1 for this user
+                referredUsers: arrayUnion(referredUserId) // Store the new referred user's ID
             });
-            console.log(`Referral count incremented for user with code: ${referralCode}`);
+            console.log(`Referral count updated for user with code: ${referralCode}`);
         } else {
             console.error("Referral user not found.");
         }
     } catch (error) {
-        console.error("Error logging referral click:", error);
+        console.error("Error updating referral count:", error);
     }
 };
-// Function to get referrals for a specific user
-const getReferrals = async (userId) => {
-    try {
-        const userRef = doc(db, "users", userId);
-        const userSnapshot = await getDoc(userRef);
 
-        if (userSnapshot.exists()) {
-            const data = userSnapshot.data();
-            return {
-                referralCount: data.referralCount || 0,
-                referredUsers: data.referredUsers || []
-            };
+// Retrieve user by their userId
+const getUser = async (userId, callback) => {
+    const userRef = doc(db, "users", userId);
+    const unsubscribe = onSnapshot(userRef, (doc) => {
+        if (doc.exists()) {
+            callback({ id: doc.id, ...doc.data() });
         } else {
-            throw new Error("User not found.");
+            console.error("No such user!");
+            callback(null);
         }
-    } catch (error) {
-        console.error("Error fetching referrals:", error);
-        throw error;
-    }
+    });
+    return unsubscribe; // Return unsubscribe function for cleanup
 };
 
+// Count total users in the database
 const getUserCount = (callback) => {
-    try {
-        return onSnapshot(usersCollection, (snapshot) => {
-            callback(snapshot.size);
-        });
-    } catch (error) {
-        console.error("Error getting user count:", error);
-    }
+    const unsubscribe = onSnapshot(usersCollection, (snapshot) => {
+        callback(snapshot.docs.length);
+    });
+    return unsubscribe; // Return unsubscribe function for cleanup
 };
 
-// Get real-time updates for a specific user by ID
-const getUser = (userId, callback) => {
-    try {
-        const userRef = doc(db, "users", userId);
-        return onSnapshot(userRef, (docSnap) => {
-            if (docSnap.exists()) {
-                callback({ id: userId, ...docSnap.data() });
-            } else {
-                console.error("User not found.");
-            }
-        });
-    } catch (error) {
-        console.error("Error fetching user:", error);
-    }
+module.exports = {
+    checkUserExists,
+    createUser,
+    getUser,
+    updateReferralCount,
+    getUserCount,
 };
-
-module.exports = { checkUserExists, createUser, getUser, getReferrals, logReferralClick, getUserCount };

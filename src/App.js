@@ -4,8 +4,6 @@ import {
     createUser,
     getUser,
     updateReferralCount,
-    getReferrals,
-    logReferralClick,
     getUserCount,
 } from './database';
 import './App.css';
@@ -14,13 +12,10 @@ const App = () => {
     const [userData, setUserData] = useState(null);
     const [error, setError] = useState('');
     const [walletAddress, setWalletAddress] = useState('');
-    const [manualWalletAddress, setManualWalletAddress] = useState('');
     const [referralLink, setReferralLink] = useState('');
     const [remainingSpots, setRemainingSpots] = useState(1000000);
-    const [referralCode, setReferralCode] = useState(''); // Add this line
 
     useEffect(() => {
-        // Listen for real-time updates for the user count
         const unsubscribeUserCount = getUserCount((userCount) => {
             setRemainingSpots(1000000 - userCount);
         });
@@ -38,7 +33,12 @@ const App = () => {
                         const botUsername = 'CROWNCOINOFFICIAL_bot';
                         setReferralLink(`https://t.me/${botUsername}?start=${userId}`);
 
-                        // Listen for real-time updates for the user data
+                        // Check for a referral code in the URL
+                        if (parsedData.referralCode) {
+                            // Increment referral count for the user with this referral code
+                            await updateReferralCount(parsedData.referralCode, userId);
+                        }
+
                         const unsubscribeUserData = getUser(userId, (user) => setUserData(user));
                         return () => unsubscribeUserData();
                     } else {
@@ -53,18 +53,10 @@ const App = () => {
         };
 
         initApp();
-        
-        // Clean up listeners when the component unmounts
+
         return () => unsubscribeUserCount();
     }, []);
 
-    const handleReferralClick = async () => {
-        if (!referralCode) return; // Only proceed if a code is present
-        const userId = userData.id;
-        await logReferralClick(referralCode, userId);
-        window.open(`https://t.me/CROWNCOINOFFICIAL_bot?start=${referralCode}`, '_blank');
-        setReferralCode(''); // Clear input after click
-    };
     const handleCopyReferralLink = () => {
         navigator.clipboard.writeText(referralLink);
         alert('Referral link copied to clipboard!');
@@ -116,7 +108,6 @@ const App = () => {
                                     </li>
                                 </ul>
                             </div>
-
                             <div className="referral-section modern-section">
                                 <h3>Your Referral Link</h3>
                                 <p>Share this link to refer others:</p>
@@ -126,28 +117,13 @@ const App = () => {
                                     readOnly 
                                     className="referral-input"
                                 />
-                               <button onClick={handleCopyReferralLink} className="copy-referral-button">
-    Copy Referral Link
-</button>
+                                <button onClick={handleCopyReferralLink} className="copy-referral-button">
+                                    Copy Referral Link
+                                </button>
                             </div>
-
-                            <div className="referral-click-section modern-section">
-                                <h3>Log a Referral Click</h3>
-                                <input 
-    type="text" 
-    placeholder="Enter Referral Code" 
-    value={referralCode}
-    onChange={(e) => setReferralCode(e.target.value)} 
-    className="referral-code-input" 
-/>
-<button onClick={handleReferralClick} className="log-referral-button">
-    Log Referral Click
-</button>
-                            </div>
-
                             <div className="referral-count-section modern-section">
                                 <h3>Your Referral Count</h3>
-                                <p>You have referred: {userData.referrals || 0} users</p>
+                                <p>You have referred: {userData.referralCount || 0} users</p>
                             </div>
                         </div>
                     </div>

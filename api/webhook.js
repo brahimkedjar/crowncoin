@@ -1,6 +1,6 @@
 // Firebase setup and utility functions
 const { db } = require("../src/firebase");
-const { collection, addDoc, doc, getDoc, updateDoc, arrayUnion, query, where, getDocs, onSnapshot, increment } = require("firebase/firestore");
+const { collection, addDoc, doc, getDoc, updateDoc, arrayUnion, query, where, getDocs, increment } = require("firebase/firestore");
 const { v4: uuidv4 } = require('uuid');
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -60,25 +60,37 @@ const createUser = async (username) => {
     }
 };
 
-// Log a referral click and update count and referred users
-const logReferralClick = async (referralCode, referredUserName) => {
+// Handle referral access by incrementing referral count and logging referred users
+const handleReferralAccess = async (referralCode, newUserId) => {
     try {
-        const userQuery = query(usersCollection, where("referralCode", "==", referralCode));
-        const querySnapshot = await getDocs(userQuery);
+        // Find the user who owns the referral code
+        const referrerQuery = query(usersCollection, where("referralCode", "==", referralCode));
+        const referrerSnapshot = await getDocs(referrerQuery);
 
-        if (!querySnapshot.empty) {
-            const userDoc = querySnapshot.docs[0];
-            const userRef = doc(db, "users", userDoc.id);
+        if (!referrerSnapshot.empty) {
+            const referrerDoc = referrerSnapshot.docs[0];
+            const referrerId = referrerDoc.id;
+            const referrerData = referrerDoc.data();
 
-            await updateDoc(userRef, {
-                referralCount: increment(1),
-                referredUsers: arrayUnion(referredUserName) // Add the referred user's name
-            });
+            // Check if the newUserId is already in referredUsers to avoid duplicates
+            const alreadyReferred = referrerData.referredUsers && referrerData.referredUsers.includes(newUserId);
+            
+            if (!alreadyReferred) {
+                // Increment referral count and add newUserId to referredUsers
+                await updateDoc(doc(db, "users", referrerId), {
+                    referralCount: increment(1),
+                    referredUsers: arrayUnion(newUserId),
+                });
+
+                console.log(`Referral count incremented and user ${newUserId} added to referredUsers for referrer ${referrerId}`);
+            } else {
+                console.log(`User ${newUserId} has already been referred by ${referrerId}`);
+            }
         } else {
-            console.error("Referral user does not exist.");
+            console.log("Referral code not found.");
         }
     } catch (error) {
-        console.error("Error logging referral click:", error);
+        console.error("Error handling referral access: ", error);
     }
 };
 
@@ -99,8 +111,8 @@ app.post('/webhook', async (req, res) => {
 
             // Log referral if a valid code is provided and isn't self-referral
             if (referralCode && referralCode !== user.referralCode) {
-                console.log(`Logging referral: ${referralCode} for user: ${username}`);
-                await logReferralClick(referralCode, username);
+                console.log(`Handling referral: ${referralCode} for user: ${username}`);
+                await handleReferralAccess(referralCode, user.id); // Use handleReferralAccess instead of logReferralClick
             }
 
             // Send response with welcome message and referral link
@@ -137,7 +149,6 @@ app.post('/webhook', async (req, res) => {
 
     res.sendStatus(200);
 });
-
 
 // Start server
 app.listen(port, () => {
