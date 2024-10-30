@@ -1,33 +1,39 @@
 import React, { useState } from 'react';
 import { FaCheckCircle } from 'react-icons/fa';
-import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import './TaskItem.css';
 
-const TaskItem = ({ label, link }) => {
-    const [loading, setLoading] = useState(false);
-    const [completed, setCompleted] = useState(false);
+const TaskItem = ({ taskUrl, taskText }) => {
+    const [isCompleted, setIsCompleted] = useState(false);
 
-    const handleTaskClick = () => {
-        setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
-            setCompleted(true);
-        }, 5000); // 5 seconds delay
+    const handleClick = () => {
+        if (!isCompleted) {
+            setIsCompleted(true);
+            // You can add any additional logic here if needed, like calling an API.
+            setTimeout(() => {
+                setIsCompleted(true); // Sets completed state after 5 seconds
+            }, 5000);
+        }
     };
 
     return (
-        <li className="task-item">
-            <a href={link} target="_blank" rel="noopener noreferrer" className="task-link" onClick={handleTaskClick}>
-                {label}
-            </a>
-            <span className="task-status-icon">
-                {loading ? (
-                    <AiOutlineLoading3Quarters className="loading-icon" />
-                ) : completed ? (
+        <button 
+            className={`task-button ${isCompleted ? 'completed' : ''}`} 
+            onClick={handleClick}
+            disabled={isCompleted}
+        >
+            <a 
+                href={taskUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="task-link"
+            >
+                {isCompleted ? (
                     <FaCheckCircle className="done-icon" />
-                ) : null}
-            </span>
-        </li>
+                ) : (
+                    <span>{taskText}</span>
+                )}
+            </a>
+        </button>
     );
 };
 

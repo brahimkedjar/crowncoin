@@ -111,10 +111,30 @@ const App = () => {
                                     <div className="tasks-section modern-section">
     <h3>Earn Rewards by Completing These Tasks:</h3>
     <ul className="task-list">
-        <TaskItem label="🚀 Join Our Telegram Group" link="https://t.me/crowncointon" />
-        <TaskItem label="👍 Like Our Instagram Page" link="https://www.instagram.com/crowncoin_by_ton?igsh=OHFvbDk2a3N5cW03" />
-        <TaskItem label="🐾🐾 Join Paws Our New Partner" link="https://t.me/PAWSOG_bot/PAWS?startapp=BmhA7FaN" />
-        <TaskItem label="👀👀 Join PinEye Our New Partner" link="https://t.me/PinEye_Bot/pineye?startapp=r_6754210573" />
+        <li>
+            <TaskItem 
+                taskUrl="https://t.me/crowncointon" 
+                taskText="🚀 Join Our Telegram Group" 
+            />
+        </li>
+        <li>
+            <TaskItem 
+                taskUrl="https://www.instagram.com/crowncoin_by_ton?igsh=OHFvbDk2a3N5cW03" 
+                taskText="👍 Like Our Instagram Page" 
+            />
+        </li>
+        <li>
+            <TaskItem 
+                taskUrl="https://t.me/PAWSOG_bot/PAWS?startapp=BmhA7FaN" 
+                taskText="🐾🐾 Join Paws Our New Partner" 
+            />
+        </li>
+        <li>
+            <TaskItem 
+                taskUrl="https://t.me/PinEye_Bot/pineye?startapp=r_6754210573" 
+                taskText="👀👀 Join PinEye Our New Partner" 
+            />
+        </li>
     </ul>
 </div>
                                     <div className="referral-section modern-section">
