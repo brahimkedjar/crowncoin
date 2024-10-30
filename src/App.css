@@ -1,3 +1,151 @@
+/* App.css */
+
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  color: #333;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #232526, #414345);
+  color: #f0f0f0;
+  padding: 20px;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.app-logo {
+  width: 80px;
+  border-radius: 50%;
+}
+
+.app-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 10px 0;
+  color: #FFD700;
+}
+
+.sub-text, .eligibility-message {
+  font-size: 1.1rem;
+  color: #f7f7f7;
+  margin: 5px 0;
+}
+
+.countdown {
+  background: rgba(255, 215, 0, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+  color: #FFD700;
+}
+
+.countdown h2 {
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.countdown-number {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.dashboard {
+  width: 100%;
+  max-width: 600px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.dashboard-title {
+  font-size: 1.8rem;
+  margin-bottom: 15px;
+  color: #FFD700;
+}
+
+.modern-section {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.tasks-section h3, .referral-section h3, .referral-click-section h3, .referral-count-section h3 {
+  color: #FFD700;
+}
+
+.task-list {
+  list-style: none;
+  padding: 0;
+}
+
+.task-button {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  padding: 10px;
+  color: #232526;
+  background: #FFD700;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.task-button:hover {
+  background: #e0b800;
+}
+
+.referral-input, .referral-code-input {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 5px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  color: #232526;
+  background: #f0f0f0;
+}
+
+.copy-referral-button {
+  padding: 10px 20px;
+  background: #FFD700;
+  border: none;
+  border-radius: 5px;
+  color: #232526;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.copy-referral-button:hover {
+  background: #e0b800;
+}
+
+.error-message, .loading-message {
+  font-size: 1.2rem;
+  color: #ff6b6b;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 20px;
+  text-align: center;
+}
+
 .leaderboard {
   width: 90%; /* Adjust width for better fit on mobile */
   max-width: 600px; /* Optional: limit max width */
@@ -21,9 +169,10 @@
   font-size: 1rem; /* Responsive font size */
   color: #333; /* Title color */
 }
+
 .leaderboard-title {
   text-align: center;
-  font-size: 1.5rem; /* Responsive font size */
+  font-size: 22px; /* Reduced font size */
   margin-bottom: 15px;
   color: #333;
 }
@@ -37,10 +186,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center; /* Align items vertically */
-  padding: 10px; /* Adjusted padding for smaller devices */
+  padding: 15px;
   border-bottom: 1px solid #ddd;
   transition: background 0.3s ease;
-  flex-wrap: wrap; /* Allow wrapping on smaller screens */
 }
 
 .leaderboard-item:hover {
@@ -48,7 +196,7 @@
 }
 
 .leaderboard-rank {
-  font-size: 1.25rem; /* Responsive font size */
+  font-size: 18px; /* Reduced font size */
   font-weight: bold;
   width: 40px;
   text-align: center;
@@ -57,7 +205,7 @@
 .leaderboard-username {
   flex-grow: 1;
   margin-left: 10px;
-  font-size: 1rem; /* Responsive font size */
+  font-size: 16px; /* Reduced font size */
   color: #007bff;
   white-space: nowrap; /* Prevent text from wrapping */
   overflow: hidden; /* Hide overflow text */
@@ -65,36 +213,15 @@
 }
 
 .leaderboard-referrals {
-  font-size: 1rem; /* Responsive font size */
+  font-size: 14px; /* Reduced font size */
   color: #555;
   margin-left: 10px; /* Space between username and referrals */
 }
 
-/* Responsive styles */
+/* Show referral count only on larger screens */
 @media (max-width: 150px) {
-  .leaderboard-item {
-      justify-content: space-between; /* Maintain space between elements */
-      flex-direction: row; /* Keep items in a row */
-  }
-
   .leaderboard-referrals {
-      display: none; /* Hide referral counts on small screens */
-  }
-
-  .leaderboard-title {
-      font-size: 1.25rem; /* Smaller title font size for mobile */
-  }
-
-  .leaderboard-rank {
-      font-size: 1rem; /* Smaller rank font size for mobile */
-  }
-
-  .leaderboard-username {
-      font-size: 0.9rem; /* Smaller username font size for mobile */
-  }
-
-  .leaderboard-referrals {
-      font-size: 0.9rem; /* Smaller referrals font size for mobile */
+      display: none; /* Hide on small screens */
   }
 }
 
@@ -114,10 +241,10 @@
 .prize-announcement {
   background-color: #f0e68c; /* Light yellow background */
   border-radius: 8px;
-  padding: 10px; /* Adjusted padding for smaller devices */
+  padding: 15px;
   margin-bottom: 20px;
   text-align: center;
-  font-size: 1.25rem; /* Responsive font size */
+  font-size: 18px; /* Reduced font size */
   color: #333;
   font-weight: bold; /* Make text bold */
   position: relative; /* For positioning */
@@ -125,7 +252,7 @@
 
 .prize-announcement::before {
   content: '🏆'; /* Trophy emoji as an icon */
-  font-size: 1.5rem; /* Adjusted emoji size */
+  font-size: 24px; /* Adjusted emoji size */
   position: absolute;
   left: 10px; /* Position it to the left */
   top: 50%;
@@ -135,3 +262,27 @@
 .prize-announcement strong {
   color: #ff6600; /* Highlight the prize amount with a different color */
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
