@@ -7,32 +7,24 @@ const checkUserExists = async (username, userId) => {
     try {
         const userQuery = query(usersCollection, where("username", "==", username), where("userId", "==", userId));
         const querySnapshot = await getDocs(userQuery);
-        
-        if (!querySnapshot.empty) {
-            const userDoc = querySnapshot.docs[0];
-            return { id: userDoc.id, ...userDoc.data() };
-        }
-        return null;
+        return querySnapshot.empty ? null : { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
     } catch (error) {
         console.error("Error checking if user exists:", error);
         throw error;
     }
 };
 
-// Create a user if they don't already exist
 const createUser = async (username, userId, referralCode) => {
     try {
         const existingUser = await checkUserExists(username, userId);
-        if (existingUser) {
-            return existingUser; // Return existing user
-        }
-        
+        if (existingUser) return existingUser;
+
         const newUser = await addDoc(usersCollection, { 
             username, 
-            userId, // Save userId here
-            referralCount: 0, 
-            referredUsers: [], // Array to store users who used this user's referral code
-            referralCode // Store unique referral code
+            userId,
+            referralCount: 0,
+            referredUsers: [],
+            referralCode 
         });
         return { id: newUser.id, username, userId, referralCount: 0, referredUsers: [], referralCode };
     } catch (error) {
@@ -41,77 +33,38 @@ const createUser = async (username, userId, referralCode) => {
     }
 };
 
-// Increment referral count and save referred user's ID
-const updateReferralCount = async (referralCode, referredUserId) => {
-    try {
-        // Find the user who owns this referral code
-        const userQuery = query(usersCollection, where("referralCode", "==", referralCode));
-        const querySnapshot = await getDocs(userQuery);
-
-        if (!querySnapshot.empty) {
-            const userDoc = querySnapshot.docs[0];
-            const userRef = doc(db, "users", userDoc.id);
-
-            await updateDoc(userRef, {
-                referralCount: increment(1), // Increment by 1 for this user
-                referredUsers: arrayUnion(referredUserId) // Store the new referred user's ID
-            });
-        } else {
-            console.error("Referral user not found.");
-        }
-    } catch (error) {
-        console.error("Error updating referral count:", error);
-    }
-};
-
-// Retrieve user by their userId
-const getUser = async (userId, callback) => {
+const getUser = (userId, setUserData) => {
     const userRef = doc(db, "users", userId);
     const unsubscribe = onSnapshot(userRef, (doc) => {
         if (doc.exists()) {
-            callback({ id: doc.id, ...doc.data() });
+            setUserData({ id: doc.id, ...doc.data() });
         } else {
-            console.error("No such user!");
-            callback(null);
+            console.log("No such user!");
         }
     });
-    return unsubscribe; // Return unsubscribe function for cleanup
+    return unsubscribe;
 };
 
-// Count total users in the database
-const getUserCount = (callback) => {
-    const unsubscribe = onSnapshot(usersCollection, (snapshot) => {
-        callback(snapshot.docs.length);
+const updateReferralCount = async (referralCode, userId) => {
+    const userRef = doc(db, "users", referralCode);
+    await updateDoc(userRef, {
+        referralCount: increment(1),
+        referredUsers: arrayUnion(userId)
     });
-    return unsubscribe; // Return unsubscribe function for cleanup
 };
-// Get the leaderboard of users sorted by referralCount
-const getLeaderboard = async (limitCount = 10) => {
-    try {
-        // Create a query to get users sorted by referralCount in descending order
-        const leaderboardQuery = query(
-            usersCollection,
-            orderBy("referralCount", "desc"), // Sort by referral count
-            limit(limitCount) // Limit the number of results
-        );
 
-        const querySnapshot = await getDocs(leaderboardQuery);
-        const leaderboard = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+const getUserCount = (setUserCount) => {
+    const userCountQuery = query(usersCollection);
+    const unsubscribe = onSnapshot(userCountQuery, (snapshot) => {
+        setUserCount(snapshot.docs.length);
+    });
+    return unsubscribe;
+};
 
-        return leaderboard; // Return the leaderboard data
-    } catch (error) {
-        console.error("Error retrieving leaderboard:", error);
-        throw error;
-    }
+const getLeaderboard = async () => {
+    const leaderboardQuery = query(usersCollection, orderBy("referralCount", "desc"), limit(10));
+    const querySnapshot = await getDocs(leaderboardQuery);
+    return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 };
-module.exports = {
-    getLeaderboard,
-    checkUserExists,
-    createUser,
-    getUser,
-    updateReferralCount,
-    getUserCount,
-};
+
+export { checkUserExists, createUser, getUser, updateReferralCount, getUserCount, getLeaderboard };

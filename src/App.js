@@ -26,7 +26,7 @@ const App = () => {
         });
 
         const initializeApp = async () => {
-            if (!window.Telegram || !window.Telegram.WebApp) {
+            if (!window.Telegram?.WebApp) {
                 setError("Telegram Web App not initialized.");
                 return;
             }
@@ -38,20 +38,18 @@ const App = () => {
                 setError("No initData found in the URL.");
                 return;
             }
-    
+
             try {
                 const parsedData = JSON.parse(decodeURIComponent(initData));
-                const userId = parsedData.user.id;
-                setUserData(parsedData.user);
-    
-                const botUsername = 'CROWNCOINOFFICIAL_bot';
-                setReferralLink(`https://t.me/${botUsername}?start=${parsedData.user.refferal}`);
-    
+                const { user } = parsedData;
+                const userId = user.id;
+
+                setUserData(user);
+                setReferralLink(`https://t.me/CROWNCOINOFFICIAL_bot?start=${user.refferal}`);
+
                 if (parsedData.referralCode) await updateReferralCount(parsedData.referralCode, userId);
-    
-                const unsubscribeUser = getUser(userId, (user) => setUserData(user));
-                const unsubscribeUserCount = getUserCount((count) => setRemainingSpots(1000000 - count));
-    
+
+                const unsubscribeUser = getUser(userId, setUserData);
                 return () => {
                     unsubscribeUser();
                     unsubscribeUserCount();
@@ -60,8 +58,9 @@ const App = () => {
                 setError("Error initializing the app.");
             }
         };
+
         initializeApp();
-    }, []); // Run once on mount only
+    }, []);
 
     useEffect(() => {
         const fetchLeaderboard = async () => {
@@ -71,8 +70,7 @@ const App = () => {
             }
         };
         fetchLeaderboard();
-    }, [view]); // Fetch leaderboard only when view changes to 'leaderboard'
-    
+    }, [view]);
 
     const handleCopyReferralLink = () => {
         navigator.clipboard.writeText(referralLink);
@@ -111,34 +109,20 @@ const App = () => {
                                         <p>To be eligible for rewards, please complete the tasks below:</p>
                                     </div>
                                     <div className="tasks-section modern-section">
-    <h3>Earn Rewards by Completing These Tasks:</h3>
-    <ul className="task-list">
-        <li>
-            <TaskItem 
-                taskUrl="https://t.me/crowncointon" 
-                taskText="🚀 Join Our Telegram Group" 
-            />
-        </li>
-        <li>
-            <TaskItem 
-                taskUrl="https://www.instagram.com/crowncoin_by_ton?igsh=OHFvbDk2a3N5cW03" 
-                taskText="👍 Like Our Instagram Page" 
-            />
-        </li>
-        <li>
-            <TaskItem 
-                taskUrl="https://t.me/PAWSOG_bot/PAWS?startapp=BmhA7FaN" 
-                taskText="🐾🐾 Join Paws Our New Partner" 
-            />
-        </li>
-        <li>
-            <TaskItem 
-                taskUrl="https://t.me/PinEye_Bot/pineye?startapp=r_6754210573" 
-                taskText="👀👀 Join PinEye Our New Partner" 
-            />
-        </li>
-    </ul>
-</div>
+                                        <h3>Earn Rewards by Completing These Tasks:</h3>
+                                        <ul className="task-list">
+                                            {[
+                                                { url: "https://t.me/crowncointon", text: "🚀 Join Our Telegram Group" },
+                                                { url: "https://www.instagram.com/crowncoin_by_ton?igsh=OHFvbDk2a3N5cW03", text: "👍 Like Our Instagram Page" },
+                                                { url: "https://t.me/PAWSOG_bot/PAWS?startapp=BmhA7FaN", text: "🐾🐾 Join Paws Our New Partner" },
+                                                { url: "https://t.me/PinEye_Bot/pineye?startapp=r_6754210573", text: "👀👀 Join PinEye Our New Partner" },
+                                            ].map((task, index) => (
+                                                <li key={index}>
+                                                    <TaskItem taskUrl={task.url} taskText={task.text} />
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
                                     <div className="referral-section modern-section">
                                         <h3>Your Referral Link</h3>
                                         <p>Share this link to refer others:</p>
@@ -165,40 +149,36 @@ const App = () => {
                 </>
             ) : (
                 <div className="leaderboard">
-    <h2 className="leaderboard-title">
-        <i className="fas fa-trophy"></i> Leaderboard
-    </h2>
-    <div className="prize-announcement">
-        <p>🏆 The first three persons will win a prize of <strong>$1000! 🏆</strong></p>
-    </div>
-    {/* Modern line separator */}
-    <div className="separator"></div>
-    
-    {leaderboardData.length > 0 ? (
-        <>
-            <div className="leaderboard-header">
-                <span className="leaderboard-rank">Rank</span>
-                <span className="leaderboard-username">Username</span>
-                <span className="leaderboard-referrals">Referrals</span>
-            </div>
-            <ul className="leaderboard-list">
-                {leaderboardData.map((user, index) => (
-                    <li key={index} className={`leaderboard-item ${index < 3 ? 'top-three' : ''}`}>
-                        <span className="leaderboard-rank" style={{ color: 'black' }}>
-                            {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}.
-                        </span>
-                        <span className="leaderboard-username">{user.username}</span>
-                        <span className="leaderboard-referrals">{user.referralCount}</span>
-                    </li>
-                ))}
-            </ul>
-        </>
-    ) : (
-        <div className="no-data-message">No leaderboard data available.</div>
-    )}
-</div>
-
-
+                    <h2 className="leaderboard-title">
+                        <i className="fas fa-trophy"></i> Leaderboard
+                    </h2>
+                    <div className="prize-announcement">
+                        <p>🏆 The first three persons will win a prize of <strong>$1000! 🏆</strong></p>
+                    </div>
+                    <div className="separator"></div>
+                    {leaderboardData.length > 0 ? (
+                        <>
+                            <div className="leaderboard-header">
+                                <span className="leaderboard-rank">Rank</span>
+                                <span className="leaderboard-username">Username</span>
+                                <span className="leaderboard-referrals">Referrals</span>
+                            </div>
+                            <ul className="leaderboard-list">
+                                {leaderboardData.map((user, index) => (
+                                    <li key={user.id} className={`leaderboard-item ${index < 3 ? 'top-three' : ''}`}>
+                                        <span className="leaderboard-rank" style={{ color: 'black' }}>
+                                            {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}.
+                                        </span>
+                                        <span className="leaderboard-username">{user.username}</span>
+                                        <span className="leaderboard-referrals">{user.referralCount}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </>
+                    ) : (
+                        <div className="no-data-message">No leaderboard data available.</div>
+                    )}
+                </div>
             )}
             <BottomNav onNavigate={handleNavigate} />
         </div>
