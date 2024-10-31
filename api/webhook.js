@@ -1,100 +1,99 @@
-const { createClient } = require('@supabase/supabase-js');
+// Firebase setup and utility functions
+const { db } = require("../src/firebase");
+const { collection, addDoc, doc, getDoc, updateDoc, arrayUnion, query, where, getDocs, increment } = require("firebase/firestore");
 const { v4: uuidv4 } = require('uuid');
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 
-const supabaseUrl  = process.env.REACT_APP_SUPABASE_URL ;
-const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 const TELEGRAM_BOT_TOKEN = process.env.REACT_APP_TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
-const supabase = createClient(supabaseUrl , SUPABASE_ANON_KEY);
 const app = express();
 const port = process.env.PORT || 3001;
 
 app.use(bodyParser.json());
 
+const usersCollection = collection(db, "users");
+
 // Helper function to generate a unique referral code
-const generateReferralCode = () => Math.random().toString(36).substring(2, 10); 
+const generateReferralCode = () => {
+    return Math.random().toString(36).substring(2, 10); // Generates a random 8-character code
+};
 
 // Check if a user exists by username
 const checkUserExists = async (username) => {
-    const { data, error } = await supabase
-        .from('users')
-        .select()
-        .eq('username', username)
-        .limit(1)
-        .single();
-
-    if (error) {
+    try {
+        const userQuery = query(usersCollection, where("username", "==", username));
+        const querySnapshot = await getDocs(userQuery);
+        
+        if (!querySnapshot.empty) {
+            const userDoc = querySnapshot.docs[0];
+            return { id: userDoc.id, ...userDoc.data() };
+        }
+        return null;
+    } catch (error) {
         console.error("Error checking if user exists:", error);
         throw error;
     }
-    return data || null;
 };
 
 // Create a user if they don't already exist
+// Create a user if they don't already exist
 const createUser = async (username) => {
-    const existingUser = await checkUserExists(username);
-    if (existingUser) return existingUser;
-
-    const newUserId = uuidv4(); 
-    const { data, error } = await supabase
-        .from('users')
-        .insert({
-            username,
-            referralCode: newUserId,
-            referralCount: 0,
-            referredUsers: []
-        })
-        .select()
-        .single();
-
-    if (error) {
+    try {
+        const existingUser = await checkUserExists(username);
+        if (existingUser) {
+            return existingUser;
+        }
+        
+        // Use userId as the referral code
+        const newUserId = uuidv4(); // Generate unique ID for new user
+        const newUser = await addDoc(usersCollection, { 
+            username, 
+            referralCode: newUserId, // Set referral code as user ID
+            referralCount: 0, 
+            referredUsers: [] 
+        });
+        return { id: newUser.id, username, referralCode: newUserId, referralCount: 0, referredUsers: [] };
+    } catch (error) {
         console.error("Error creating user:", error);
         throw error;
     }
-    return data;
 };
+
 
 // Handle referral access by incrementing referral count and logging referred users
 const handleReferralAccess = async (referralCode, newUserId) => {
-    const { data: referrerData, error: referrerError } = await supabase
-        .from('users')
-        .select()
-        .eq('referralCode', referralCode)
-        .limit(1)
-        .single();
+    try {
+        // Find the user who owns the referral code
+        const referrerQuery = query(usersCollection, where("referralCode", "==", referralCode));
+        const referrerSnapshot = await getDocs(referrerQuery);
 
-    if (referrerError) {
-        console.error("Error finding referrer:", referrerError);
-        return;
-    }
+        if (!referrerSnapshot.empty) {
+            const referrerDoc = referrerSnapshot.docs[0];
+            const referrerId = referrerDoc.id;
+            const referrerData = referrerDoc.data();
 
-    if (!referrerData) {
-        console.log("Referral code not found.");
-        return;
-    }
+            // Check if the newUserId is already in referredUsers to avoid duplicates
+            const alreadyReferred = referrerData.referredUsers && referrerData.referredUsers.includes(newUserId);
+            
+            if (!alreadyReferred) {
+                // Increment referral count and add newUserId to referredUsers
+                await updateDoc(doc(db, "users", referrerId), {
+                    referralCount: increment(1),
+                    referredUsers: arrayUnion(newUserId),
+                });
 
-    const alreadyReferred = referrerData.referredUsers?.includes(newUserId);
-
-    if (!alreadyReferred) {
-        const { error: updateError } = await supabase
-            .from('users')
-            .update({
-                referralCount: referrerData.referralCount + 1,
-                referredUsers: [...referrerData.referredUsers, newUserId]
-            })
-            .eq('id', referrerData.id);
-
-        if (updateError) {
-            console.error("Error updating referral data:", updateError);
+                console.log(`Referral count incremented and user ${newUserId} added to referredUsers for referrer ${referrerId}`);
+            } else {
+                console.log(`User ${newUserId} has already been referred by ${referrerId}`);
+            }
         } else {
-            console.log(`Referral count incremented and user ${newUserId} added to referredUsers for referrer ${referrerData.id}`);
+            console.log("Referral code not found.");
         }
-    } else {
-        console.log(`User ${newUserId} has already been referred by ${referrerData.id}`);
+    } catch (error) {
+        console.error("Error handling referral access: ", error);
     }
 };
 
@@ -104,21 +103,24 @@ app.post('/webhook', async (req, res) => {
     if (message && message.text.startsWith('/start')) {
         const chatId = message.chat.id;
         const username = message.from.username || "User";
-        const referralCode = message.text.split(' ')[1] || '';
+        const referralCode = message.text.split(' ')[1] || ''; // Retrieve referral code if provided
 
         try {
+            // Check if user exists or create new one
             let user = await checkUserExists(username);
             if (!user) {
-                user = await createUser(username);
+                user = await createUser(username); // Generate a new user and referral code
             }
 
+            // Log referral if a valid code is provided and isn't self-referral
             if (referralCode && referralCode !== user.referralCode) {
                 console.log(`Handling referral: ${referralCode} for user: ${username}`);
-                await handleReferralAccess(referralCode, user.id);
+                await handleReferralAccess(referralCode, user.id); // Use handleReferralAccess instead of logReferralClick
             }
 
+            // Send response with welcome message and referral link
             const responseText = `Welcome ${username}! Click the button below to open the CrownCoin app.`;
-            const initData = JSON.stringify({ user: { id: user.id, username, referral: user.referralCode } });
+            const initData = JSON.stringify({ user: { id: user.id, username,refferal:user.referralCode } });
 
             const replyMarkup = {
                 inline_keyboard: [

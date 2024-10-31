@@ -6,7 +6,7 @@ import {
     updateReferralCount,
     getUserCount,
     getLeaderboard,
-} from './database_supa';
+} from './database';
 import './App.css';
 import BottomNav from './BottomNav';
 import TaskItem from './TaskItem';
@@ -21,20 +21,10 @@ const App = () => {
     const [leaderboardData, setLeaderboardData] = useState([]);
 
     useEffect(() => {
-        // Fetch user count and update remaining spots
-        const fetchUserCount = async () => {
-            try {
-                const userCount = await getUserCount(); // Assumes getUserCount returns a promise
-                setRemainingSpots(1000000 - userCount);
-            } catch (err) {
-                console.error('Error fetching user count:', err);
-                setError('Failed to fetch user count.');
-            }
-        };
-        fetchUserCount();
-    }, []); 
+        const unsubscribeUserCount = getUserCount((userCount) => {
+            setRemainingSpots(1000000 - userCount);
+        });
 
-    useEffect(() => {
         const initializeApp = async () => {
             if (!window.Telegram || !window.Telegram.WebApp) {
                 setError("Telegram Web App not initialized.");
@@ -57,34 +47,32 @@ const App = () => {
                 const botUsername = 'CROWNCOINOFFICIAL_bot';
                 setReferralLink(`https://t.me/${botUsername}?start=${parsedData.user.refferal}`);
     
-                if (parsedData.referralCode) {
-                    await updateReferralCount(parsedData.referralCode, userId);
-                }
+                if (parsedData.referralCode) await updateReferralCount(parsedData.referralCode, userId);
     
-                const user = await getUser(userId); // Assumes getUser is a promise
-                setUserData(user);
-            } catch (err) {
-                console.error('Error initializing the app:', err);
+                const unsubscribeUser = getUser(userId, (user) => setUserData(user));
+                const unsubscribeUserCount = getUserCount((count) => setRemainingSpots(1000000 - count));
+    
+                return () => {
+                    unsubscribeUser();
+                    unsubscribeUserCount();
+                };
+            } catch (error) {
                 setError("Error initializing the app.");
             }
         };
         initializeApp();
-    }, []);
+    }, []); // Run once on mount only
 
     useEffect(() => {
         const fetchLeaderboard = async () => {
             if (view === 'leaderboard' && leaderboardData.length === 0) {
-                try {
-                    const leaderboard = await getLeaderboard();
-                    setLeaderboardData(leaderboard);
-                } catch (err) {
-                    console.error('Error fetching leaderboard:', err);
-                    setError("Failed to fetch leaderboard data.");
-                }
+                const leaderboard = await getLeaderboard();
+                setLeaderboardData(leaderboard);
             }
         };
         fetchLeaderboard();
-    }, [view]);
+    }, [view]); // Fetch leaderboard only when view changes to 'leaderboard'
+    
 
     const handleCopyReferralLink = () => {
         navigator.clipboard.writeText(referralLink);
@@ -123,19 +111,46 @@ const App = () => {
                                         <p>To be eligible for rewards, please complete the tasks below:</p>
                                     </div>
                                     <div className="tasks-section modern-section">
-                                        <h3>Earn Rewards by Completing These Tasks:</h3>
-                                        <ul className="task-list">
-                                            <li><TaskItem taskUrl="https://t.me/crowncointon" taskText="🚀 Join Our Telegram Group" /></li>
-                                            <li><TaskItem taskUrl="https://www.instagram.com/crowncoin_by_ton?igsh=OHFvbDk2a3N5cW03" taskText="👍 Like Our Instagram Page" /></li>
-                                            <li><TaskItem taskUrl="https://t.me/PAWSOG_bot/PAWS?startapp=BmhA7FaN" taskText="🐾🐾 Join Paws Our New Partner" /></li>
-                                            <li><TaskItem taskUrl="https://t.me/PinEye_Bot/pineye?startapp=r_6754210573" taskText="👀👀 Join PinEye Our New Partner" /></li>
-                                        </ul>
-                                    </div>
+    <h3>Earn Rewards by Completing These Tasks:</h3>
+    <ul className="task-list">
+        <li>
+            <TaskItem 
+                taskUrl="https://t.me/crowncointon" 
+                taskText="🚀 Join Our Telegram Group" 
+            />
+        </li>
+        <li>
+            <TaskItem 
+                taskUrl="https://www.instagram.com/crowncoin_by_ton?igsh=OHFvbDk2a3N5cW03" 
+                taskText="👍 Like Our Instagram Page" 
+            />
+        </li>
+        <li>
+            <TaskItem 
+                taskUrl="https://t.me/PAWSOG_bot/PAWS?startapp=BmhA7FaN" 
+                taskText="🐾🐾 Join Paws Our New Partner" 
+            />
+        </li>
+        <li>
+            <TaskItem 
+                taskUrl="https://t.me/PinEye_Bot/pineye?startapp=r_6754210573" 
+                taskText="👀👀 Join PinEye Our New Partner" 
+            />
+        </li>
+    </ul>
+</div>
                                     <div className="referral-section modern-section">
                                         <h3>Your Referral Link</h3>
                                         <p>Share this link to refer others:</p>
-                                        <input type="text" value={referralLink} readOnly className="referral-input" />
-                                        <button onClick={handleCopyReferralLink} className="copy-referral-button">Copy Referral Link</button>
+                                        <input
+                                            type="text"
+                                            value={referralLink}
+                                            readOnly
+                                            className="referral-input"
+                                        />
+                                        <button onClick={handleCopyReferralLink} className="copy-referral-button">
+                                            Copy Referral Link
+                                        </button>
                                     </div>
                                     <div className="referral-count-section modern-section">
                                         <h3>Your Referral Count</h3>
@@ -150,32 +165,40 @@ const App = () => {
                 </>
             ) : (
                 <div className="leaderboard">
-                    <h2 className="leaderboard-title"><i className="fas fa-trophy"></i> Leaderboard</h2>
-                    <div className="prize-announcement"><p>🏆 The first three persons will win a prize of <strong>$1000! 🏆</strong></p></div>
-                    <div className="separator"></div>
-                    {leaderboardData.length > 0 ? (
-                        <>
-                            <div className="leaderboard-header">
-                                <span className="leaderboard-rank">Rank</span>
-                                <span className="leaderboard-username">Username</span>
-                                <span className="leaderboard-referrals">Referrals</span>
-                            </div>
-                            <ul className="leaderboard-list">
-                                {leaderboardData.map((user, index) => (
-                                    <li key={index} className={`leaderboard-item ${index < 3 ? 'top-three' : ''}`}>
-                                        <span className="leaderboard-rank" style={{ color: 'black' }}>
-                                            {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}.
-                                        </span>
-                                        <span className="leaderboard-username">{user.username}</span>
-                                        <span className="leaderboard-referrals">{user.referralCount}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </>
-                    ) : (
-                        <div className="no-data-message">No leaderboard data available.</div>
-                    )}
-                </div>
+    <h2 className="leaderboard-title">
+        <i className="fas fa-trophy"></i> Leaderboard
+    </h2>
+    <div className="prize-announcement">
+        <p>🏆 The first three persons will win a prize of <strong>$1000! 🏆</strong></p>
+    </div>
+    {/* Modern line separator */}
+    <div className="separator"></div>
+    
+    {leaderboardData.length > 0 ? (
+        <>
+            <div className="leaderboard-header">
+                <span className="leaderboard-rank">Rank</span>
+                <span className="leaderboard-username">Username</span>
+                <span className="leaderboard-referrals">Referrals</span>
+            </div>
+            <ul className="leaderboard-list">
+                {leaderboardData.map((user, index) => (
+                    <li key={index} className={`leaderboard-item ${index < 3 ? 'top-three' : ''}`}>
+                        <span className="leaderboard-rank" style={{ color: 'black' }}>
+                            {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}.
+                        </span>
+                        <span className="leaderboard-username">{user.username}</span>
+                        <span className="leaderboard-referrals">{user.referralCount}</span>
+                    </li>
+                ))}
+            </ul>
+        </>
+    ) : (
+        <div className="no-data-message">No leaderboard data available.</div>
+    )}
+</div>
+
+
             )}
             <BottomNav onNavigate={handleNavigate} />
         </div>
