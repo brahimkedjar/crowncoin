@@ -4,12 +4,12 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 
-const SUPABASE_URL  = "https://hfoqrjlsmwpwujqwgmds.supabase.co" ;
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhmb3FyamxzbXdwd3VqcXdnbWRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzAzOTA3MjYsImV4cCI6MjA0NTk2NjcyNn0.Q6a-hT1xySKiWS5IHNkyqxI0CIbw_lylSDzih2Co8cc" ;
+const supabaseUrl  = process.env.REACT_APP_SUPABASE_URL ;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 const TELEGRAM_BOT_TOKEN = process.env.REACT_APP_TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
-const supabase = createClient(SUPABASE_URL , SUPABASE_ANON_KEY);
+const supabase = createClient(supabaseUrl , SUPABASE_ANON_KEY);
 const app = express();
 const port = process.env.PORT || 3001;
 
