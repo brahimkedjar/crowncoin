@@ -2,11 +2,12 @@ const { db } = require("./firebase");
 const { collection, addDoc, doc, orderBy, limit, updateDoc, arrayUnion, query, where, increment, getDocs, onSnapshot } = require("firebase/firestore");
 
 const usersCollection = collection(db, "users");
+
 const checkUserExists = async (username, userId) => {
     try {
         const userQuery = query(usersCollection, where("username", "==", username), where("userId", "==", userId));
         const querySnapshot = await getDocs(userQuery);
-
+        
         if (!querySnapshot.empty) {
             const userDoc = querySnapshot.docs[0];
             return { id: userDoc.id, ...userDoc.data() };
@@ -18,27 +19,6 @@ const checkUserExists = async (username, userId) => {
     }
 };
 
-// Consolidate referral and new user data updates for batch processing
-const updateReferralCount = async (referralCode, referredUserId) => {
-    try {
-        const userQuery = query(usersCollection, where("referralCode", "==", referralCode));
-        const querySnapshot = await getDocs(userQuery);
-
-        if (!querySnapshot.empty) {
-            const userDoc = querySnapshot.docs[0];
-            const userRef = doc(db, "users", userDoc.id);
-
-            await updateDoc(userRef, {
-                referralCount: increment(1),
-                referredUsers: arrayUnion(referredUserId)
-            });
-        } else {
-            console.error("Referral user not found.");
-        }
-    } catch (error) {
-        console.error("Error updating referral count:", error);
-    }
-};
 // Create a user if they don't already exist
 const createUser = async (username, userId, referralCode) => {
     try {
@@ -61,6 +41,28 @@ const createUser = async (username, userId, referralCode) => {
     }
 };
 
+// Increment referral count and save referred user's ID
+const updateReferralCount = async (referralCode, referredUserId) => {
+    try {
+        // Find the user who owns this referral code
+        const userQuery = query(usersCollection, where("referralCode", "==", referralCode));
+        const querySnapshot = await getDocs(userQuery);
+
+        if (!querySnapshot.empty) {
+            const userDoc = querySnapshot.docs[0];
+            const userRef = doc(db, "users", userDoc.id);
+
+            await updateDoc(userRef, {
+                referralCount: increment(1), // Increment by 1 for this user
+                referredUsers: arrayUnion(referredUserId) // Store the new referred user's ID
+            });
+        } else {
+            console.error("Referral user not found.");
+        }
+    } catch (error) {
+        console.error("Error updating referral count:", error);
+    }
+};
 
 // Retrieve user by their userId
 const getUser = async (userId, callback) => {
