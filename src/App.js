@@ -25,52 +25,54 @@ const App = () => {
             setRemainingSpots(1000000 - userCount);
         });
 
-        const initApp = async () => {
+        const initializeApp = async () => {
+            if (!window.Telegram || !window.Telegram.WebApp) {
+                setError("Telegram Web App not initialized.");
+                return;
+            }
+    
+            const urlParams = new URLSearchParams(window.location.search);
+            const initData = urlParams.get('initData');
+            
+            if (!initData) {
+                setError("No initData found in the URL.");
+                return;
+            }
+    
             try {
-                if (window.Telegram && window.Telegram.WebApp) {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const initData = urlParams.get('initData');
-                    if (initData) {
-                        const parsedData = JSON.parse(decodeURIComponent(initData));
-                        const userId = parsedData.user.id;
-                        setUserData(parsedData.user);
-
-                        const botUsername = 'CROWNCOINOFFICIAL_bot';
-                        setReferralLink(`https://t.me/${botUsername}?start=${parsedData.user.refferal}`);
-
-                        // Check for a referral code in the URL
-                        if (parsedData.referralCode) {
-                            await updateReferralCount(parsedData.referralCode, userId);
-                        }
-
-                        const unsubscribeUserData = getUser(userId, (user) => setUserData(user));
-                        return () => unsubscribeUserData();
-                    } else {
-                        setError("No initData found in the URL.");
-                    }
-                } else {
-                    setError("Telegram Web App not initialized.");
-                }
+                const parsedData = JSON.parse(decodeURIComponent(initData));
+                const userId = parsedData.user.id;
+                setUserData(parsedData.user);
+    
+                const botUsername = 'CROWNCOINOFFICIAL_bot';
+                setReferralLink(`https://t.me/${botUsername}?start=${parsedData.user.referralCode}`);
+    
+                if (parsedData.referralCode) await updateReferralCount(parsedData.referralCode, userId);
+    
+                const unsubscribeUser = getUser(userId, (user) => setUserData(user));
+                const unsubscribeUserCount = getUserCount((count) => setRemainingSpots(1000000 - count));
+    
+                return () => {
+                    unsubscribeUser();
+                    unsubscribeUserCount();
+                };
             } catch (error) {
-                setError("An error occurred while initializing the app.");
+                setError("Error initializing the app.");
             }
         };
-
-        initApp();
-
-        return () => unsubscribeUserCount();
-    }, []); // Run only once on mount
+        initializeApp();
+    }, []); // Run once on mount only
 
     useEffect(() => {
         const fetchLeaderboard = async () => {
-            if (view === 'leaderboard') {
+            if (view === 'leaderboard' && leaderboardData.length === 0) {
                 const leaderboard = await getLeaderboard();
                 setLeaderboardData(leaderboard);
             }
         };
-
         fetchLeaderboard();
-    }, [view]); // Fetch leaderboard data whenever the view changes
+    }, [view]); // Fetch leaderboard only when view changes to 'leaderboard'
+    
 
     const handleCopyReferralLink = () => {
         navigator.clipboard.writeText(referralLink);
